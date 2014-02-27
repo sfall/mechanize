@@ -31,7 +31,7 @@ COPYING.txt included with the distribution).
 import copy
 import base64
 import http.client
-import mimetools
+import email
 import logging
 import os
 import posixpath
@@ -71,10 +71,9 @@ def splithost(url):
     return None, url
 
 
-from urllib import (unwrap, unquote, splittype, quote,
-     addinfourl, splitport,
-     splitattr, ftpwrapper, splituser, splitpasswd, splitvalue)
-from urllib.request import url2pathname
+from urllib.request import (unwrap, unquote, splittype, quote,
+    addinfourl, splitport, splitattr, ftpwrapper, splituser, splitpasswd,
+    splitvalue, localhost, url2pathname, getproxies)
 from urllib.error import HTTPError, URLError
 
 from . import _request
@@ -1268,7 +1267,7 @@ class FileHandler(BaseHandler):
             size = stats.st_size
             modified = emailutils.formatdate(stats.st_mtime, usegmt=True)
             mtype = mimetypes.guess_type(file)[0]
-            headers = mimetools.Message(StringIO(
+            headers = email.Message(StringIO(
                 'Content-type: %s\nContent-length: %d\nLast-modified: %s\n' %
                 (mtype or 'text/plain', size, modified)))
             if host:
@@ -1331,7 +1330,7 @@ class FTPHandler(BaseHandler):
             if retrlen is not None and retrlen >= 0:
                 headers += "Content-length: %d\n" % retrlen
             sf = StringIO(headers)
-            headers = mimetools.Message(sf)
+            headers = email.Message(sf)
             return addinfourl(fp, headers, req.get_full_url())
         except ftplib.all_errors as msg:
             raise URLError('ftp error: %s' % msg).with_traceback(sys.exc_info()[2])
