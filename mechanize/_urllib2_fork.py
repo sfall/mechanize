@@ -368,7 +368,7 @@ def build_opener(*handlers):
     default_classes = [ProxyHandler, UnknownHandler, HTTPHandler,
                        HTTPDefaultErrorHandler, HTTPRedirectHandler,
                        FTPHandler, FileHandler, HTTPErrorProcessor]
-    if hasattr(httplib, 'HTTPS'):
+    if hasattr(http.client, 'HTTPS'):
         default_classes.append(HTTPSHandler)
     skip = set()
     for klass in default_classes:
@@ -1047,7 +1047,7 @@ class AbstractHTTPHandler(BaseHandler):
     def do_open(self, http_class, req):
         """Return an addinfourl object for the request, using http_class.
 
-        http_class must implement the HTTPConnection API from httplib.
+        http_class must implement the HTTPConnection API from http.client.
         The addinfourl return value is a file-like object.  It also
         has methods and attributes including:
             - info(): return a mimetools.Message object for the headers
@@ -1121,7 +1121,7 @@ class HTTPHandler(AbstractHTTPHandler):
 
     http_request = AbstractHTTPHandler.do_request_
 
-if hasattr(httplib, 'HTTPS'):
+if hasattr(http.client, 'HTTPS'):
 
     class HTTPSConnectionFactory:
         def __init__(self, key_file, cert_file):
