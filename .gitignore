@@ -4,4 +4,5 @@
 /docs/forms.txt
 /docs/html
 /docs/styles
+/mechanize/__pycache__
 *.egg-info/
