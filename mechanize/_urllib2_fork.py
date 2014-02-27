@@ -53,14 +53,8 @@ def md5_digest(bytes):
     return hashlib.md5(bytes).hexdigest()
 
 
-try:
-    socket._fileobject("fake socket", close=True)
-except TypeError:
-    # python <= 2.4
-    create_readline_wrapper = socket._fileobject
-else:
-    def create_readline_wrapper(fh):
-        return socket._fileobject(fh, close=True)
+def create_readline_wrapper(fh):
+    return socket._fileobject(fh, close=True)
 
 
 # python 2.4 splithost has a bug in empty path component case
