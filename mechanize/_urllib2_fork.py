@@ -54,7 +54,7 @@ def md5_digest(bytes):
 
 
 def create_readline_wrapper(fh):
-    return socket._fileobject(fh, close=True)
+    return socket.SocketIO(fh, 'rb')
 
 
 # python 2.4 splithost has a bug in empty path component case
