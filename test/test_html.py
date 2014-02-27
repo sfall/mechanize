@@ -67,54 +67,54 @@ class CachingGeneratorFunctionTests(TestCase):
         log = []
         cgenf = self._get_simple_cgenf(log)
         for repeat in range(2):
-            for ii, jj in zip(cgenf(), range(2)):
+            for ii, jj in zip(cgenf(), list(range(2))):
                 self.assertEqual(ii, jj)
-            self.assertEqual(log, range(2))  # work only done once
+            self.assertEqual(log, list(range(2)))  # work only done once
 
     def test_interleaved(self):
         log = []
         cgenf = self._get_simple_cgenf(log)
         cgen = cgenf()
-        self.assertEqual(cgen.next(), 0)
+        self.assertEqual(next(cgen), 0)
         self.assertEqual(log, [0])
         cgen2 = cgenf()
-        self.assertEqual(cgen2.next(), 0)
+        self.assertEqual(next(cgen2), 0)
         self.assertEqual(log, [0])
-        self.assertEqual(cgen.next(), 1)
+        self.assertEqual(next(cgen), 1)
         self.assertEqual(log, [0, 1])
-        self.assertEqual(cgen2.next(), 1)
+        self.assertEqual(next(cgen2), 1)
         self.assertEqual(log, [0, 1])
-        self.assertRaises(StopIteration, cgen.next)
-        self.assertRaises(StopIteration, cgen2.next)
+        self.assertRaises(StopIteration, cgen.__next__)
+        self.assertRaises(StopIteration, cgen2.__next__)
 
 
 class UnescapeTests(TestCase):
 
     def test_unescape_charref(self):
         from mechanize._html import unescape_charref
-        mdash_utf8 = u"\u2014".encode("utf-8")
+        mdash_utf8 = "\u2014".encode("utf-8")
         for ref, codepoint, utf8, latin1 in [
-            ("38", 38, u"&".encode("utf-8"), "&"),
+            ("38", 38, "&".encode("utf-8"), "&"),
             ("x2014", 0x2014, mdash_utf8, "&#x2014;"),
             ("8212", 8212, mdash_utf8, "&#8212;"),
             ]:
-            self.assertEqual(unescape_charref(ref, None), unichr(codepoint))
+            self.assertEqual(unescape_charref(ref, None), chr(codepoint))
             self.assertEqual(unescape_charref(ref, 'latin-1'), latin1)
             self.assertEqual(unescape_charref(ref, 'utf-8'), utf8)
 
     def test_unescape(self):
-        import htmlentitydefs
+        import html.entities
         from mechanize._html import unescape
         data = "&amp; &lt; &mdash; &#8212; &#x2014;"
-        mdash_utf8 = u"\u2014".encode("utf-8")
-        ue = unescape(data, htmlentitydefs.name2codepoint, "utf-8")
+        mdash_utf8 = "\u2014".encode("utf-8")
+        ue = unescape(data, html.entities.name2codepoint, "utf-8")
         self.assertEqual("& < %s %s %s" % ((mdash_utf8,)*3), ue)
 
         for text, expect in [
             ("&a&amp;", "&a&"),
             ("a&amp;", "a&"),
             ]:
-            got = unescape(text, htmlentitydefs.name2codepoint, "latin-1")
+            got = unescape(text, html.entities.name2codepoint, "latin-1")
             self.assertEqual(got, expect)
 
 

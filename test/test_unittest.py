@@ -6,8 +6,8 @@ Still need testing:
     TestCase.{assert,fail}* methods (some are tested implicitly)
 """
 
-from StringIO import StringIO
-import __builtin__
+from io import StringIO
+import builtins
 import os
 import re
 import sys
@@ -15,7 +15,7 @@ import unittest
 from unittest import TestCase, TestProgram
 import types
 from copy import deepcopy
-from cStringIO import StringIO
+from io import StringIO
 import pickle
 
 ### Support code
@@ -93,7 +93,7 @@ class TestHashing(object):
                     self.fail("%r and %r do not hash equal" % (obj_1, obj_2))
             except KeyboardInterrupt:
                 raise
-            except Exception, e:
+            except Exception as e:
                 self.fail("Problem hashing %r and %r: %s" % (obj_1, obj_2, e))
 
         for obj_1, obj_2 in self.ne_pairs:
@@ -103,7 +103,7 @@ class TestHashing(object):
                               (obj_1, obj_2))
             except KeyboardInterrupt:
                 raise
-            except Exception, e:
+            except Exception as e:
                 self.fail("Problem hashing %s and %s: %s" % (obj_1, obj_2, e))
 
 
@@ -300,7 +300,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromName('')
-        except ValueError, e:
+        except ValueError as e:
             self.assertEqual(str(e), "Empty module name")
         else:
             self.fail("TestLoader.loadTestsFromName failed to raise ValueError")
@@ -333,7 +333,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromName('sdasfasfasdf')
-        except ImportError, e:
+        except ImportError as e:
             self.assertEqual(str(e), "No module named sdasfasfasdf")
         else:
             self.fail("TestLoader.loadTestsFromName failed to raise ImportError")
@@ -349,7 +349,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromName('unittest.sdasfasfasdf')
-        except AttributeError, e:
+        except AttributeError as e:
             self.assertEqual(str(e), "'module' object has no attribute 'sdasfasfasdf'")
         else:
             self.fail("TestLoader.loadTestsFromName failed to raise AttributeError")
@@ -366,7 +366,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromName('sdasfasfasdf', unittest)
-        except AttributeError, e:
+        except AttributeError as e:
             self.assertEqual(str(e), "'module' object has no attribute 'sdasfasfasdf'")
         else:
             self.fail("TestLoader.loadTestsFromName failed to raise AttributeError")
@@ -387,7 +387,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromName('', unittest)
-        except AttributeError, e:
+        except AttributeError as e:
             pass
         else:
             self.fail("Failed to raise AttributeError")
@@ -520,7 +520,7 @@ class Test_TestLoader(TestCase):
         loader = unittest.TestLoader()
         try:
             loader.loadTestsFromName('testcase_1.testfoo', m)
-        except AttributeError, e:
+        except AttributeError as e:
             self.assertEqual(str(e), "type object 'MyTestCase' has no attribute 'testfoo'")
         else:
             self.fail("Failed to raise AttributeError")
@@ -683,7 +683,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromNames([''])
-        except ValueError, e:
+        except ValueError as e:
             self.assertEqual(str(e), "Empty module name")
         else:
             self.fail("TestLoader.loadTestsFromNames failed to raise ValueError")
@@ -718,7 +718,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromNames(['sdasfasfasdf'])
-        except ImportError, e:
+        except ImportError as e:
             self.assertEqual(str(e), "No module named sdasfasfasdf")
         else:
             self.fail("TestLoader.loadTestsFromNames failed to raise ImportError")
@@ -734,7 +734,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromNames(['unittest.sdasfasfasdf', 'unittest'])
-        except AttributeError, e:
+        except AttributeError as e:
             self.assertEqual(str(e), "'module' object has no attribute 'sdasfasfasdf'")
         else:
             self.fail("TestLoader.loadTestsFromNames failed to raise AttributeError")
@@ -753,7 +753,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromNames(['sdasfasfasdf'], unittest)
-        except AttributeError, e:
+        except AttributeError as e:
             self.assertEqual(str(e), "'module' object has no attribute 'sdasfasfasdf'")
         else:
             self.fail("TestLoader.loadTestsFromName failed to raise AttributeError")
@@ -772,7 +772,7 @@ class Test_TestLoader(TestCase):
 
         try:
             loader.loadTestsFromNames(['TestCase', 'sdasfasfasdf'], unittest)
-        except AttributeError, e:
+        except AttributeError as e:
             self.assertEqual(str(e), "'module' object has no attribute 'sdasfasfasdf'")
         else:
             self.fail("TestLoader.loadTestsFromName failed to raise AttributeError")
@@ -921,7 +921,7 @@ class Test_TestLoader(TestCase):
         loader = unittest.TestLoader()
         try:
             loader.loadTestsFromNames(['testcase_1.testfoo'], m)
-        except AttributeError, e:
+        except AttributeError as e:
             self.assertEqual(str(e), "type object 'MyTestCase' has no attribute 'testfoo'")
         else:
             self.fail("Failed to raise AttributeError")
@@ -1797,7 +1797,7 @@ class Test_FunctionTestCase(TestCase):
     def test_id(self):
         test = unittest.FunctionTestCase(lambda: None)
 
-        self.assertTrue(isinstance(test.id(), basestring))
+        self.assertTrue(isinstance(test.id(), str))
 
     # "Returns a one-line description of the test, or None if no description
     # has been provided. The default implementation of this method returns
@@ -2429,7 +2429,7 @@ class Test_TestCase(TestCase, TestEquality, TestHashing):
             def runTest(self):
                 pass
 
-        self.assertTrue(isinstance(Foo().id(), basestring))
+        self.assertTrue(isinstance(Foo().id(), str))
 
     # "If result is omitted or None, a temporary result object is created
     # and used, but is not made available to the caller. As TestCase owns the
@@ -2747,47 +2747,47 @@ class Test_TestCase(TestCase, TestEquality, TestHashing):
         self.assertRaises(self.failureException, self.assertLessEqual, 'bug', 'ant')
 
         # Try Unicode
-        self.assertGreater(u'bug', u'ant')
-        self.assertGreaterEqual(u'bug', u'ant')
-        self.assertGreaterEqual(u'ant', u'ant')
-        self.assertLess(u'ant', u'bug')
-        self.assertLessEqual(u'ant', u'bug')
-        self.assertLessEqual(u'ant', u'ant')
-        self.assertRaises(self.failureException, self.assertGreater, u'ant', u'bug')
-        self.assertRaises(self.failureException, self.assertGreater, u'ant', u'ant')
-        self.assertRaises(self.failureException, self.assertGreaterEqual, u'ant',
-                          u'bug')
-        self.assertRaises(self.failureException, self.assertLess, u'bug', u'ant')
-        self.assertRaises(self.failureException, self.assertLess, u'ant', u'ant')
-        self.assertRaises(self.failureException, self.assertLessEqual, u'bug', u'ant')
+        self.assertGreater('bug', 'ant')
+        self.assertGreaterEqual('bug', 'ant')
+        self.assertGreaterEqual('ant', 'ant')
+        self.assertLess('ant', 'bug')
+        self.assertLessEqual('ant', 'bug')
+        self.assertLessEqual('ant', 'ant')
+        self.assertRaises(self.failureException, self.assertGreater, 'ant', 'bug')
+        self.assertRaises(self.failureException, self.assertGreater, 'ant', 'ant')
+        self.assertRaises(self.failureException, self.assertGreaterEqual, 'ant',
+                          'bug')
+        self.assertRaises(self.failureException, self.assertLess, 'bug', 'ant')
+        self.assertRaises(self.failureException, self.assertLess, 'ant', 'ant')
+        self.assertRaises(self.failureException, self.assertLessEqual, 'bug', 'ant')
 
         # Try Mixed String/Unicode
-        self.assertGreater('bug', u'ant')
-        self.assertGreater(u'bug', 'ant')
-        self.assertGreaterEqual('bug', u'ant')
-        self.assertGreaterEqual(u'bug', 'ant')
-        self.assertGreaterEqual('ant', u'ant')
-        self.assertGreaterEqual(u'ant', 'ant')
-        self.assertLess('ant', u'bug')
-        self.assertLess(u'ant', 'bug')
-        self.assertLessEqual('ant', u'bug')
-        self.assertLessEqual(u'ant', 'bug')
-        self.assertLessEqual('ant', u'ant')
-        self.assertLessEqual(u'ant', 'ant')
-        self.assertRaises(self.failureException, self.assertGreater, 'ant', u'bug')
-        self.assertRaises(self.failureException, self.assertGreater, u'ant', 'bug')
-        self.assertRaises(self.failureException, self.assertGreater, 'ant', u'ant')
-        self.assertRaises(self.failureException, self.assertGreater, u'ant', 'ant')
+        self.assertGreater('bug', 'ant')
+        self.assertGreater('bug', 'ant')
+        self.assertGreaterEqual('bug', 'ant')
+        self.assertGreaterEqual('bug', 'ant')
+        self.assertGreaterEqual('ant', 'ant')
+        self.assertGreaterEqual('ant', 'ant')
+        self.assertLess('ant', 'bug')
+        self.assertLess('ant', 'bug')
+        self.assertLessEqual('ant', 'bug')
+        self.assertLessEqual('ant', 'bug')
+        self.assertLessEqual('ant', 'ant')
+        self.assertLessEqual('ant', 'ant')
+        self.assertRaises(self.failureException, self.assertGreater, 'ant', 'bug')
+        self.assertRaises(self.failureException, self.assertGreater, 'ant', 'bug')
+        self.assertRaises(self.failureException, self.assertGreater, 'ant', 'ant')
+        self.assertRaises(self.failureException, self.assertGreater, 'ant', 'ant')
         self.assertRaises(self.failureException, self.assertGreaterEqual, 'ant',
-                          u'bug')
-        self.assertRaises(self.failureException, self.assertGreaterEqual, u'ant',
                           'bug')
-        self.assertRaises(self.failureException, self.assertLess, 'bug', u'ant')
-        self.assertRaises(self.failureException, self.assertLess, u'bug', 'ant')
-        self.assertRaises(self.failureException, self.assertLess, 'ant', u'ant')
-        self.assertRaises(self.failureException, self.assertLess, u'ant', 'ant')
-        self.assertRaises(self.failureException, self.assertLessEqual, 'bug', u'ant')
-        self.assertRaises(self.failureException, self.assertLessEqual, u'bug', 'ant')
+        self.assertRaises(self.failureException, self.assertGreaterEqual, 'ant',
+                          'bug')
+        self.assertRaises(self.failureException, self.assertLess, 'bug', 'ant')
+        self.assertRaises(self.failureException, self.assertLess, 'bug', 'ant')
+        self.assertRaises(self.failureException, self.assertLess, 'ant', 'ant')
+        self.assertRaises(self.failureException, self.assertLess, 'ant', 'ant')
+        self.assertRaises(self.failureException, self.assertLessEqual, 'bug', 'ant')
+        self.assertRaises(self.failureException, self.assertLessEqual, 'bug', 'ant')
 
     def testAssertMultiLineEqual(self):
         sample_text = """\
@@ -2817,7 +2817,7 @@ test case
             try:
                 self.assertMultiLineEqual(type_changer(sample_text),
                                           type_changer(revised_sample_text))
-            except self.failureException, e:
+            except self.failureException as e:
                 # no fair testing ourself with ourself, use assertEqual..
                 self.assertEqual(sample_text_error, str(e).encode('utf8'))
 
@@ -2841,7 +2841,7 @@ test case
 
         self.assertRaisesRegexp(ExceptionMock, re.compile('expect$'), Stub)
         self.assertRaisesRegexp(ExceptionMock, 'expect$', Stub)
-        self.assertRaisesRegexp(ExceptionMock, u'expect$', Stub)
+        self.assertRaisesRegexp(ExceptionMock, 'expect$', Stub)
 
     def testAssertNotRaisesRegexp(self):
         self.assertRaisesRegexp(
@@ -2854,7 +2854,7 @@ test case
                 lambda: None)
         self.assertRaisesRegexp(
                 self.failureException, '^Exception not raised$',
-                self.assertRaisesRegexp, Exception, u'x',
+                self.assertRaisesRegexp, Exception, 'x',
                 lambda: None)
 
     def testAssertRaisesRegexpMismatch(self):
@@ -2869,7 +2869,7 @@ test case
         self.assertRaisesRegexp(
                 self.failureException,
                 r'"\^Expected\$" does not match "Unexpected"',
-                self.assertRaisesRegexp, Exception, u'^Expected$',
+                self.assertRaisesRegexp, Exception, '^Expected$',
                 Stub)
         self.assertRaisesRegexp(
                 self.failureException,
@@ -2916,7 +2916,7 @@ test case
         self.failUnlessAlmostEqual(2.0, 2.0)
         self.failIfAlmostEqual(3.0, 5.0)
         self.failUnless(True)
-        self.failUnlessRaises(TypeError, lambda _: 3.14 + u'spam')
+        self.failUnlessRaises(TypeError, lambda _: 3.14 + 'spam')
         self.failIf(False)
 
     # not sure why this is broken, don't care
@@ -3058,7 +3058,7 @@ class Test_Assertions(TestCase):
         self.assertRaises(KeyError, _raise, KeyError("key"))
         try:
             self.assertRaises(KeyError, lambda: None)
-        except self.failureException, e:
+        except self.failureException as e:
             self.assert_("KeyError not raised" in e, str(e))
         else:
             self.fail("assertRaises() didn't fail")
@@ -3483,9 +3483,9 @@ class Test_TextTestRunner(TestCase):
     def test_pickle_unpickle(self):
         # Issue #7197: a TextTestRunner should be (un)pickleable. This is
         # required by test_multiprocessing under Windows (in verbose mode).
-        import StringIO
+        import io
         # cStringIO objects are not pickleable, but StringIO objects are.
-        stream = StringIO.StringIO("foo")
+        stream = io.StringIO("foo")
         runner = unittest.TextTestRunner(stream)
         for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
             s = pickle.dumps(runner, protocol=protocol)

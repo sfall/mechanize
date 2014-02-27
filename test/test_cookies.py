@@ -1,6 +1,6 @@
 """Tests for _clientcookie."""
 
-import StringIO
+import io
 import errno
 import inspect
 import mimetools
@@ -22,7 +22,7 @@ class FakeResponse:
         """
         headers: list of RFC822-style 'Key: value' strings
         """
-        f = StringIO.StringIO("\n".join(headers))
+        f = io.StringIO("\n".join(headers))
         self._headers = mimetools.Message(f)
         self._url = url
     def info(self): return self._headers
@@ -55,7 +55,7 @@ class TempfileTestMixin:
         for fn in self._tempfiles:
             try:
                 os.remove(fn)
-            except IOError, exc:
+            except IOError as exc:
                 if exc.errno != errno.ENOENT:
                     raise
 
@@ -387,8 +387,8 @@ class CookieTests(unittest.TestCase):
         interact_netscape(c, "http://www.acme.com/", 'version=eggs; spam=eggs')
 
         cookies = c._cookies["www.acme.com"]["/"]
-        self.assert_(cookies.has_key('expires'))
-        self.assert_(cookies.has_key('version'))
+        self.assert_('expires' in cookies)
+        self.assert_('version' in cookies)
 
     def test_expires(self):
         from mechanize._util import time2netscape
@@ -439,39 +439,39 @@ class CookieTests(unittest.TestCase):
 
         c = CookieJar(pol)
         interact_2965(c, "http://www.acme.com/", 'spam="bar"; Version="1"')
-        assert c._cookies["www.acme.com"].has_key("/")
+        assert "/" in c._cookies["www.acme.com"]
 
         c = CookieJar(pol)
         interact_2965(c, "http://www.acme.com/blah", 'eggs="bar"; Version="1"')
-        assert c._cookies["www.acme.com"].has_key("/")
+        assert "/" in c._cookies["www.acme.com"]
   
         c = CookieJar(pol)
         interact_2965(c, "http://www.acme.com/blah/rhubarb",
                       'eggs="bar"; Version="1"')
-        assert c._cookies["www.acme.com"].has_key("/blah/")
+        assert "/blah/" in c._cookies["www.acme.com"]
 
         c = CookieJar(pol)
         interact_2965(c, "http://www.acme.com/blah/rhubarb/",
                       'eggs="bar"; Version="1"')
-        assert c._cookies["www.acme.com"].has_key("/blah/rhubarb/")
+        assert "/blah/rhubarb/" in c._cookies["www.acme.com"]
 
         # Netscape
 
         c = CookieJar()
         interact_netscape(c, "http://www.acme.com/", 'spam="bar"')
-        assert c._cookies["www.acme.com"].has_key("/")
+        assert "/" in c._cookies["www.acme.com"]
 
         c = CookieJar()
         interact_netscape(c, "http://www.acme.com/blah", 'eggs="bar"')
-        assert c._cookies["www.acme.com"].has_key("/")
+        assert "/" in c._cookies["www.acme.com"]
   
         c = CookieJar()
         interact_netscape(c, "http://www.acme.com/blah/rhubarb", 'eggs="bar"')
-        assert c._cookies["www.acme.com"].has_key("/blah")
+        assert "/blah" in c._cookies["www.acme.com"]
 
         c = CookieJar()
         interact_netscape(c, "http://www.acme.com/blah/rhubarb/", 'eggs="bar"')
-        assert c._cookies["www.acme.com"].has_key("/blah/rhubarb")
+        assert "/blah/rhubarb" in c._cookies["www.acme.com"]
 
     def test_default_path_with_query(self):
         cj = mechanize.CookieJar()
@@ -502,7 +502,7 @@ class CookieTests(unittest.TestCase):
             ("/foo\031/bar", "/foo%19/bar"),
             ("/\175foo/bar", "/%7Dfoo/bar"),
             # unicode
-            (u"/foo/bar\uabcd", "/foo/bar%EA%AF%8D"),  # UTF-8 encoded
+            ("/foo/bar\uabcd", "/foo/bar%EA%AF%8D"),  # UTF-8 encoded
             ]
         for arg, result in cases:
             self.assert_(escape_path(arg) == result)
@@ -1253,7 +1253,7 @@ class CookieJarPersistenceTests(TempfileTestMixin, unittest.TestCase):
         finally:
             try:
                 os.remove(filename)
-            except IOError, exc:
+            except IOError as exc:
                 if exc.errno != errno.ENOENT:
                     raise
 
@@ -1271,7 +1271,7 @@ class CookieJarPersistenceTests(TempfileTestMixin, unittest.TestCase):
         finally:
             try:
                 os.remove(filename)
-            except IOError, exc:
+            except IOError as exc:
                 if exc.errno != errno.ENOENT:
                     raise
 
@@ -1709,7 +1709,7 @@ class LWPCookieTests(unittest.TestCase, TempfileTestMixin):
         assert not cookie
 
         # unicode URL doesn't raise exception, as it used to!
-        cookie = interact_2965(c, u"http://www.acme.com/\xfc")
+        cookie = interact_2965(c, "http://www.acme.com/\xfc")
 
     def test_netscape_misc(self):
         # Some additional Netscape cookies tests.

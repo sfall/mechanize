@@ -12,8 +12,8 @@ import socket
 import subprocess
 import sys
 import unittest
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 import mechanize
 from mechanize import CookieJar, HTTPCookieProcessor, \
@@ -76,16 +76,16 @@ class TestCase(mechanize._testcase.TestCase):
             old_opener_u = urllib2._opener
             mechanize.install_opener(mechanize.build_opener(
                     mechanize.ProxyHandler(proxies={})))
-            urllib2.install_opener(urllib2.build_opener(
-                    urllib2.ProxyHandler(proxies={})))
+            urllib.request.install_opener(urllib.request.build_opener(
+                    urllib.request.ProxyHandler(proxies={})))
             def revert_install():
                 mechanize.install_opener(old_opener_m)
-                urllib2.install_opener(old_opener_u)
+                urllib.request.install_opener(old_opener_u)
             self.add_teardown(revert_install)
 
 
 def sanepathname2url(path):
-    urlpath = urllib.pathname2url(path)
+    urlpath = urllib.request.pathname2url(path)
     if os.name == "nt" and urlpath.startswith("///"):
         urlpath = urlpath[2:]
     # XXX don't ask me about the mac...
@@ -270,7 +270,7 @@ class SimpleTests(SocketTimeoutTest):
     def test_refresh(self):
         def refresh_request(seconds):
             uri = urljoin(self.uri, "/cgi-bin/cookietest.cgi")
-            val = urllib.quote_plus('%d; url="%s"' % (seconds, self.uri))
+            val = urllib.parse.quote_plus('%d; url="%s"' % (seconds, self.uri))
             return uri + ("?refresh=%s" % val)
         self.browser.set_handle_refresh(True, honor_time=False)
         r = self.browser.open(refresh_request(5))
@@ -356,7 +356,7 @@ class ResponseTests(TestCase):
         opener.set_seekable_responses(True)
         try:
             opener.open(urljoin(self.uri, "nonexistent"))
-        except mechanize.HTTPError, exc:
+        except mechanize.HTTPError as exc:
             self.assert_("HTTPError instance" in repr(exc))
 
     def test_no_seek(self):
@@ -366,7 +366,7 @@ class ResponseTests(TestCase):
             self.assert_(not hasattr(r, "seek"))
             try:
                 opener.open(urljoin(self.uri, "nonexistent"))
-            except mechanize.HTTPError, exc:
+            except mechanize.HTTPError as exc:
                 self.assert_(not hasattr(exc, "seek"))
 
         # mechanize.UserAgent
@@ -391,7 +391,7 @@ class ResponseTests(TestCase):
             self.assertEqual(data, r.read(), r.get_data())
             try:
                 opener.open(urljoin(self.uri, "nonexistent"))
-            except mechanize.HTTPError, exc:
+            except mechanize.HTTPError as exc:
                 data = exc.read()
                 if excs_also:
                     exc.seek(0)
@@ -525,7 +525,7 @@ class FunctionalTests(SocketTimeoutTest):
                 opener.open, urljoin(self.uri, "norobots"))
 
     def _check_retrieve(self, url, filename, headers):
-        from urllib import urlopen
+        from urllib.request import urlopen
         self.assertEqual(headers.get('Content-Type'), 'text/html')
         if self.no_proxies:
             proxies = {}
@@ -725,7 +725,7 @@ class CookieJarTests(TestCase):
             cj = mechanize.MozillaCookieJar(filename=filename)
             try:
                 cj.revert()
-            except IOError, exc:
+            except IOError as exc:
                 if exc.errno != errno.ENOENT:
                     raise
             return cj

@@ -13,7 +13,7 @@ class PullParserTests(TestCase):
     PARSERS = [(PullParser, False), (TolerantPullParser, True)]
 
     def data_and_file(self):
-        from StringIO import StringIO
+        from io import StringIO
         data = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
 "http://www.w3.org/TR/html4/strict.dtd">
 <html>
@@ -41,7 +41,7 @@ still a comment , blah and a space at the end
         for pc, tolerant in PullParserTests.PARSERS:
             self._test_encoding(pc, tolerant)
     def _test_encoding(self, parser_class, tolerant):
-        from StringIO import StringIO
+        from io import StringIO
         datas = ["<a>&#1092;</a>", "<a>&#x444;</a>"]
         def get_text(data, encoding):
             p = _get_parser(data, encoding)
@@ -66,10 +66,10 @@ still a comment , blah and a space at the end
             self.assertEqual(get_text(data, "UTF-8"), "\xd1\x84")
 
         self.assertEqual(get_text("<a>&mdash;</a>", "UTF-8"),
-                         u"\u2014".encode('utf8'))
+                         "\u2014".encode('utf8'))
         self.assertEqual(
             get_attr('<a name="&mdash;">blah</a>', "UTF-8", "a", "name"),
-            u"\u2014".encode('utf8'))
+            "\u2014".encode('utf8'))
         self.assertEqual(get_text("<a>&mdash;</a>", "ascii"), "&mdash;")
 
 #        response = urllib.addinfourl(f, {"content-type": "text/html; charset=XXX"}, req.get_full_url())
@@ -208,7 +208,7 @@ still a comment , blah and a space at the end
         data, f = self.data_and_file()
         p = parser_class(f)
         self.assertEqual(p.get_text(endat=("endtag", "html")),
-                     u"\n\n\nTitle\n\n\nThis is a data blah & a[IMG]"
+                     "\n\n\nTitle\n\n\nThis is a data blah & a[IMG]"
                      " & that was an entityref and this a is\na charref.  ."
                      "\n\n\n\n\n\n")
         f.close()
@@ -234,7 +234,7 @@ still a comment , blah and a space at the end
         data, f = self.data_and_file()
         p = parser_class(f)
         self.assertEqual(p.get_compressed_text(endat=("endtag", "html")),
-                         u"Title This is a data blah & a[IMG]"
+                         "Title This is a data blah & a[IMG]"
                          " & that was an entityref and this a is a charref. .")
         f.close()
 

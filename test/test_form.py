@@ -6,7 +6,7 @@
 # Copyright 2005 Zope Corporation
 # Copyright 1998-2000 Gisle Aas.
 
-from cStringIO import StringIO
+from io import StringIO
 import os
 import string
 import unittest
@@ -78,13 +78,13 @@ class UnescapeTests(unittest.TestCase):
 
     def test_unescape_charref(self):
         unescape_charref = _form.unescape_charref
-        mdash_utf8 = u"\u2014".encode("utf-8")
+        mdash_utf8 = "\u2014".encode("utf-8")
         for ref, codepoint, utf8, latin1 in [
-            ("38", 38, u"&".encode("utf-8"), "&"),
+            ("38", 38, "&".encode("utf-8"), "&"),
             ("x2014", 0x2014, mdash_utf8, "&#x2014;"),
             ("8212", 8212, mdash_utf8, "&#8212;"),
             ]:
-            self.assertEqual(unescape_charref(ref, None), unichr(codepoint))
+            self.assertEqual(unescape_charref(ref, None), chr(codepoint))
             self.assertEqual(unescape_charref(ref, 'latin-1'), latin1)
             self.assertEqual(unescape_charref(ref, 'utf-8'), utf8)
 
@@ -92,11 +92,11 @@ class UnescapeTests(unittest.TestCase):
         get_entitydefs = _form.get_entitydefs
         ed = get_entitydefs()
         for name, char in [
-            ("&amp;", u"&"),
-            ("&lt;", u"<"),
-            ("&gt;", u">"),
-            ("&mdash;", u"\u2014"),
-            ("&spades;", u"\u2660"),
+            ("&amp;", "&"),
+            ("&lt;", "<"),
+            ("&gt;", ">"),
+            ("&mdash;", "\u2014"),
+            ("&spades;", "\u2660"),
             ]:
             self.assertEqual(ed[name], char)
 
@@ -104,7 +104,7 @@ class UnescapeTests(unittest.TestCase):
         unescape = _form.unescape
         get_entitydefs = _form.get_entitydefs
         data = "&amp; &lt; &mdash; &#8212; &#x2014;"
-        mdash_utf8 = u"\u2014".encode("utf-8")
+        mdash_utf8 = "\u2014".encode("utf-8")
         ue = unescape(data, get_entitydefs(), "utf-8")
         self.assertEqual("& < %s %s %s" % ((mdash_utf8,)*3), ue)
 
@@ -132,7 +132,7 @@ class UnescapeTests(unittest.TestCase):
         self.assertEqual(unescape("&amp;", {}), "&amp;")
 
         for encoding, expected in [
-            ("utf-8", u"&\u06aa\u2014\u2014".encode("utf-8")),
+            ("utf-8", "&\u06aa\u2014\u2014".encode("utf-8")),
             ("latin-1", "&&#x06aa;&#x2014;&mdash;")]:
             self.assertEqual(
                 expected,
@@ -147,7 +147,7 @@ class UnescapeTests(unittest.TestCase):
         forms = mechanize.ParseFile(file, "http://localhost/",
                                     backwards_compat=False, encoding="utf-8")
         form = forms[0]
-        test_string = "&amp;"+(u"\u2014".encode('utf8')*3)
+        test_string = "&amp;"+("\u2014".encode('utf8')*3)
         self.assertEqual(form.action, "http://localhost/"+test_string)
         control = form.find_control(type="textarea", nr=0)
         self.assertEqual(control.value, "val"+test_string)
@@ -164,7 +164,7 @@ class UnescapeTests(unittest.TestCase):
 """)  #"
         forms = mechanize.ParseFileEx(f, "http://localhost/", encoding="utf-8")
         form = forms[1]
-        test_string = "&amp;"+(u"\u2014".encode('utf8')*3)
+        test_string = "&amp;"+("\u2014".encode('utf8')*3)
         control = form.find_control(nr=0)
         for ii in range(len(control.items)):
             item = control.items[ii]
@@ -233,7 +233,7 @@ def header_items(req):
     try:
         return req.header_items()
     except AttributeError:
-        return req.headers.items()
+        return list(req.headers.items())
 
 class MockResponse:
     def __init__(self, f, url):
@@ -384,7 +384,7 @@ class ParseTests(unittest.TestCase):
         base_uri = "http://localhost/"
         try:
             mechanize.ParseFile(f, base_uri, backwards_compat=False)
-        except mechanize.ParseError, e:
+        except mechanize.ParseError as e:
             self.assert_(e.base_uri == base_uri)
         else:
             self.assert_(0)
@@ -436,7 +436,7 @@ Rhubarb.
         self.assert_(form.name is None)
         self.assertEqual(
             form.action,
-            "http://localhost/abc&amp;"+u"\u2014".encode('utf8')+"d")
+            "http://localhost/abc&amp;"+"\u2014".encode('utf8')+"d")
         control = form.find_control(type="textarea", nr=0)
         self.assert_(control.name is None)
         self.assert_(control.value == "blah, blah,\r\nRhubarb.\r\n\r\n")
@@ -1159,7 +1159,7 @@ class DisabledTests(unittest.TestCase):
             hide_deprecations()
             item = control.get_item_attrs("2")
             reset_deprecations()
-            self.assertEqual(bool(item.has_key("disabled")), item_disabled)
+            self.assertEqual(bool("disabled" in item), item_disabled)
 
             def bad_assign(value, control=control): control.value = value
             hide_deprecations()
@@ -1243,7 +1243,7 @@ class DisabledTests(unittest.TestCase):
             self.assert_(bool(control.disabled) == control_disabled)
             hide_deprecations()
             item = control.get_item_attrs("2")
-            self.assert_(bool(item.has_key("disabled")) == item_disabled)
+            self.assert_(bool("disabled" in item) == item_disabled)
             self.assert_(control.get_item_disabled("2") == item_disabled)
 
             def bad_assign(value, control=control): control.value = value
@@ -1321,9 +1321,9 @@ class ControlTests(unittest.TestCase):
         c.disabled = False
         self.assert_(str(c) == "<TextControl(ath_Uname=2)>")
 
-        self.assert_(c.attrs.has_key("maxlength"))
+        self.assert_("maxlength" in c.attrs)
         for key in "name", "type", "value":
-            self.assert_(c.attrs.has_key(key))
+            self.assert_(key in c.attrs)
 
         # initialisation of readonly and disabled attributes
         attrs["readonly"] = True
@@ -1389,11 +1389,11 @@ class ControlTests(unittest.TestCase):
         c.readonly = False
         self.assert_(str(c) == "<IsindexControl(2)>")
 
-        self.assert_(c.attrs.has_key("type"))
-        self.assert_(c.attrs.has_key("prompt"))
+        self.assert_("type" in c.attrs)
+        self.assert_("prompt" in c.attrs)
         self.assert_(c.attrs["prompt"] == ">>>")
         for key in "name", "value":
-            self.assert_(not c.attrs.has_key(key))
+            self.assert_(key not in c.attrs)
 
         c.value = "foo 1 bar 2"
         class FakeForm: action = "http://localhost/"
@@ -1564,7 +1564,7 @@ class ControlTests(unittest.TestCase):
 
         attrs = c.get_item_attrs("value_value")
         for key in "alt", "name", "value", "type":
-            self.assert_(attrs.has_key(key))
+            self.assert_(key in attrs)
         self.assertRaises(ItemNotFoundError, c.get_item_attrs, "oops")
         reset_deprecations()
 
@@ -1662,8 +1662,8 @@ class ControlTests(unittest.TestCase):
         hide_deprecations()
         self.assert_(c.possible_items() == ["value_value"])
         reset_deprecations()
-        self.assert_(c.attrs.has_key("name"))
-        self.assert_(c.attrs.has_key("type"))
+        self.assert_("name" in c.attrs)
+        self.assert_("type" in c.attrs)
         self.assert_(c.attrs["alt"] == "alt_text")
         # ... and with RFC 1866 default selection
         c = _form.SelectControl("select", "select_name", attrs, select_default=True)
@@ -1688,14 +1688,14 @@ class ControlTests(unittest.TestCase):
         # get_item_attrs
         attrs3 = c.get_item_attrs("value_value")
         reset_deprecations()
-        self.assert_(attrs3.has_key("alt"))
-        self.assert_(not attrs3.has_key("multiple"))
+        self.assert_("alt" in attrs3)
+        self.assert_("multiple" not in attrs3)
         # HTML attributes dictionary should have been copied by ListControl
         # constructor.
         attrs["new_attr"] = "new"
         attrs2["new_attr2"] = "new2"
         for key in ("new_attr", "new_attr2"):
-            self.assert_(not attrs3.has_key(key))
+            self.assert_(key not in attrs3)
         hide_deprecations()
         self.assertRaises(ItemNotFoundError, c.get_item_attrs, "oops")
         reset_deprecations()
@@ -1942,8 +1942,8 @@ class ControlTests(unittest.TestCase):
         hide_deprecations()
         self.assert_(c.possible_items() == ["value_value"])
         reset_deprecations()
-        self.assert_(c.attrs.has_key("name"))
-        self.assert_(c.attrs.has_key("type"))
+        self.assert_("name" in c.attrs)
+        self.assert_("type" in c.attrs)
         self.assert_(c.attrs["alt"] == "alt_text")
         # ...and RFC 1866 behaviour are identical (unlike multiple SELECT).
         c = _form.SelectControl("select", "select_name", attrs,
@@ -2197,7 +2197,7 @@ class FormTests(unittest.TestCase):
     base_uri = "http://auth.athensams.net/"
 
     def _get_test_file(self, filename):
-        import test_form
+        from . import test_form
         this_dir = os.path.dirname(test_form.__file__)
         path = os.path.join(this_dir, "test_form_data", filename)
         return open(path)
@@ -3179,13 +3179,13 @@ class MoreFormTests(unittest.TestCase):
         hide_deprecations()
         self.assert_(a.get_item_attrs("1")["blah"] == "spam")
         self.assert_(a.get_item_attrs("2")["blah"] == "eggs")
-        self.assert_(not a.get_item_attrs("3").has_key("blah"))
+        self.assert_("blah" not in a.get_item_attrs("3"))
 
         c = form.find_control("c")
         self.assert_(c.attrs["blah"] == "foo")
         self.assert_(c.get_item_attrs("1")["blah"] == "bar")
         self.assert_(c.get_item_attrs("2")["blah"] == "baz")
-        self.assert_(not c.get_item_attrs("3").has_key("blah"))
+        self.assert_("blah" not in c.get_item_attrs("3"))
         reset_deprecations()
 
     def test_select_control_nr_and_label(self):

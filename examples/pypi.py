@@ -7,7 +7,7 @@
 
 import sys
 import os
-import urlparse
+import urllib.parse
 
 import mechanize
 
@@ -23,7 +23,7 @@ def download_mechanize():
     browser.submit()
     browser.follow_link(text_regex="mechanize-?(.*)")
     link = browser.find_link(text_regex=r"\.tar\.gz")
-    filename = os.path.basename(urlparse.urlsplit(link.url)[2])
+    filename = os.path.basename(urllib.parse.urlsplit(link.url)[2])
     if os.path.exists(filename):
         sys.exit("%s already exists, not grabbing" % filename)
     browser.retrieve(link.url, filename)

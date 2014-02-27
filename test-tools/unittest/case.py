@@ -125,7 +125,7 @@ class _AssertRaisesContext(object):
             return True
 
         expected_regexp = self.expected_regex
-        if isinstance(expected_regexp, basestring):
+        if isinstance(expected_regexp, str):
             expected_regexp = re.compile(expected_regexp)
         if not expected_regexp.search(str(exc_value)):
             raise self.failureException('"%s" does not match "%s"' %
@@ -292,7 +292,7 @@ class TestCase(object):
             success = False
             try:
                 self.setUp()
-            except SkipTest, e:
+            except SkipTest as e:
                 result.addSkip(self, str(e))
             except Exception:
                 result.addError(self, sys.exc_info())
@@ -301,11 +301,11 @@ class TestCase(object):
                     testMethod()
                 except self.failureException:
                     result.addFailure(self, sys.exc_info())
-                except _ExpectedFailure, e:
+                except _ExpectedFailure as e:
                     result.addExpectedFailure(self, e.exc_info)
                 except _UnexpectedSuccess:
                     result.addUnexpectedSuccess(self)
-                except SkipTest, e:
+                except SkipTest as e:
                     result.addSkip(self, str(e))
                 except Exception:
                     result.addError(self, sys.exc_info())
@@ -569,7 +569,7 @@ class TestCase(object):
             elements = (seq_type_name.capitalize(), seq1_repr, seq2_repr)
             differing = '%ss differ: %s != %s\n' % elements
 
-            for i in xrange(min(len1, len2)):
+            for i in range(min(len1, len2)):
                 try:
                     item1 = seq1[i]
                 except (TypeError, IndexError, NotImplementedError):
@@ -657,16 +657,16 @@ class TestCase(object):
         """
         try:
             difference1 = set1.difference(set2)
-        except TypeError, e:
+        except TypeError as e:
             self.fail('invalid type when attempting set difference: %s' % e)
-        except AttributeError, e:
+        except AttributeError as e:
             self.fail('first argument does not support set difference: %s' % e)
 
         try:
             difference2 = set2.difference(set1)
-        except TypeError, e:
+        except TypeError as e:
             self.fail('invalid type when attempting set difference: %s' % e)
-        except AttributeError, e:
+        except AttributeError as e:
             self.fail('second argument does not support set difference: %s' % e)
 
         if not (difference1 or difference2):
@@ -723,7 +723,7 @@ class TestCase(object):
         """Checks whether actual is a superset of expected."""
         missing = []
         mismatched = []
-        for key, value in expected.iteritems():
+        for key, value in expected.items():
             if key not in actual:
                 missing.append(key)
             elif value != actual[key]:
@@ -775,9 +775,9 @@ class TestCase(object):
 
     def assertMultiLineEqual(self, first, second, msg=None):
         """Assert that two multi-line strings are equal."""
-        self.assert_(isinstance(first, basestring), (
+        self.assert_(isinstance(first, str), (
                 'First argument is not a string'))
-        self.assert_(isinstance(second, basestring), (
+        self.assert_(isinstance(second, str), (
                 'Second argument is not a string'))
 
         if first != second:
@@ -852,7 +852,7 @@ class TestCase(object):
         with_(context, lambda: callable_obj(*args, **kwargs))
 
     def assertRegexpMatches(self, text, expected_regex, msg=None):
-        if isinstance(expected_regex, basestring):
+        if isinstance(expected_regex, str):
             expected_regex = re.compile(expected_regex)
         if not expected_regex.search(text):
             msg = msg or "Regexp didn't match"

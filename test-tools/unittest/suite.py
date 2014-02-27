@@ -51,7 +51,7 @@ class TestSuite(object):
         self._tests.append(test)
 
     def addTests(self, tests):
-        if isinstance(tests, basestring):
+        if isinstance(tests, str):
             raise TypeError("tests must be an iterable of tests, not a string")
         for test in tests:
             self.addTest(test)

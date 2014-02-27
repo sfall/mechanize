@@ -35,7 +35,7 @@ import subprocess
 import sys
 import time
 import unittest
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 import mechanize
 import mechanize._rfc3986
@@ -151,7 +151,7 @@ def kill_posix(pid, report_hook):
             report_hook("forcefully killing")
             try:
                 os.kill(pid, signal.SIGKILL)
-            except OSError, exc:
+            except OSError as exc:
                 if exc.errno != errno.ECHILD:
                     raise
     finally:
@@ -166,7 +166,7 @@ class TwistedServerProcess(ServerProcess):
         ServerProcess.__init__(self, path, name)
         self.uri = uri
         authority = mechanize._rfc3986.urlsplit(uri)[1]
-        host, port = urllib.splitport(authority)
+        host, port = urllib.parse.splitport(authority)
         if port is None:
             port = "80"
         self.port = int(port)
@@ -247,7 +247,7 @@ class TrivialCM(object):
 def add_attributes_to_test_cases(suite, attributes):
     for test in suite:
         if isinstance(test, unittest.TestCase):
-            for name, value in attributes.iteritems():
+            for name, value in attributes.items():
                 setattr(test, name, value)
         else:
             try:

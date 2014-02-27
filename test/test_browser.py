@@ -2,8 +2,8 @@
 """Tests for mechanize.Browser."""
 
 from unittest import TestCase
-import StringIO
-import httplib
+import io
+import http.client
 import mimetools
 import re
 
@@ -24,18 +24,18 @@ class MockMethod:
         self.handle = handle
         self.action = action
     def __call__(self, *args):
-        return apply(self.handle, (self.meth_name, self.action)+args)
+        return self.handle(*(self.meth_name, self.action)+args)
 
 class MockHeaders(dict):
     def getheaders(self, name):
         name = name.lower()
-        return [v for k, v in self.iteritems() if name == k.lower()]
+        return [v for k, v in self.items() if name == k.lower()]
 
 class MockResponse:
     closeable_response = None
     def __init__(self, url="http://example.com/", data=None, info=None):
         self.url = url
-        self.fp = StringIO.StringIO(data)
+        self.fp = io.StringIO(data)
         if info is None: info = {}
         self._info = MockHeaders(info)
     def info(self): return self._info
@@ -163,8 +163,8 @@ class BrowserTests(TestCase):
 
     def test_encoding(self):
         import mechanize
-        from StringIO import StringIO
-        import urllib
+        from io import StringIO
+        import urllib.request, urllib.parse, urllib.error
         # always take first encoding, since that's the one from the real HTTP
         # headers, rather than from HTTP-EQUIV
         b = mechanize.Browser()
@@ -234,7 +234,7 @@ class BrowserTests(TestCase):
             def https_open(self, request):
                 r = mechanize.HTTPError(
                     "https://example.com/bad", 503, "Oops",
-                    MockHeaders(), StringIO.StringIO())
+                    MockHeaders(), io.StringIO())
                 return r
         b.add_handler(Handler2())
         self.assertRaises(mechanize.HTTPError, b.open,
@@ -487,7 +487,7 @@ class BrowserTests(TestCase):
 
             Link = mechanize.Link
             try:
-                mdashx2 = u"\u2014".encode(encoding)*2
+                mdashx2 = "\u2014".encode(encoding)*2
             except UnicodeError:
                 mdashx2 = '&mdash;&#x2014;'
             qmdashx2 = clean_url(mdashx2, encoding)
@@ -751,9 +751,9 @@ class ResponseTests(TestCase):
             "<TestBrowser (not visiting a URL)>"
             )
 
-        fp = StringIO.StringIO('<html><form name="f"><input /></form></html>')
+        fp = io.StringIO('<html><form name="f"><input /></form></html>')
         headers = mimetools.Message(
-            StringIO.StringIO("Content-type: text/html"))
+            io.StringIO("Content-type: text/html"))
         response = _response.response_seek_wrapper(
             _response.closeable_response(
             fp, headers, "http://example.com/", 200, "OK"))
@@ -787,17 +787,17 @@ class HttplibTests(mechanize._testcase.TestCase):
             return
         def getresponse(self_):
             class Response(object):
-                msg = mimetools.Message(StringIO.StringIO(""))
+                msg = mimetools.Message(io.StringIO(""))
                 status = 200
                 reason = "OK"
                 def read(self__):
                     return ""
             return Response()
-        self.monkey_patch(httplib.HTTPConnection, "putheader", putheader)
-        self.monkey_patch(httplib.HTTPConnection, "connect", do_nothing)
-        self.monkey_patch(httplib.HTTPConnection, "send", do_nothing)
-        self.monkey_patch(httplib.HTTPConnection, "close", do_nothing)
-        self.monkey_patch(httplib.HTTPConnection, "getresponse", getresponse)
+        self.monkey_patch(http.client.HTTPConnection, "putheader", putheader)
+        self.monkey_patch(http.client.HTTPConnection, "connect", do_nothing)
+        self.monkey_patch(http.client.HTTPConnection, "send", do_nothing)
+        self.monkey_patch(http.client.HTTPConnection, "close", do_nothing)
+        self.monkey_patch(http.client.HTTPConnection, "getresponse", getresponse)
 
     def test_add_host_header(self):
         headers = []

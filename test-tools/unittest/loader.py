@@ -162,7 +162,7 @@ class TestLoader(object):
         testCaseNames = self.getTestCaseNames(testCaseClass)
         if not testCaseNames and hasattr(testCaseClass, 'runTest'):
             testCaseNames = ['runTest']
-        loaded_suite = self.suiteClass(map(testCaseClass, testCaseNames))
+        loaded_suite = self.suiteClass(list(map(testCaseClass, testCaseNames)))
         return loaded_suite
 
     def loadTestsFromModule(self, module, use_load_tests=True):
@@ -250,7 +250,7 @@ class TestLoader(object):
                          prefix=self.testMethodPrefix):
             return attrname.startswith(prefix) and \
                 hasattr(getattr(testCaseClass, attrname), '__call__')
-        testFnNames = filter(isTestMethod, dir(testCaseClass))
+        testFnNames = list(filter(isTestMethod, dir(testCaseClass)))
         if self.sortTestMethodsUsing:
             testFnNames.sort(key=_CmpToKey(self.sortTestMethodsUsing))
         return testFnNames

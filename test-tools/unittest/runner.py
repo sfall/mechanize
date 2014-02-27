@@ -147,14 +147,14 @@ class TextTestRunner(object):
         self.stream.writeln("Ran %d test%s in %.3fs" %
                             (run, run != 1 and "s" or "", timeTaken))
         self.stream.writeln()
-        results = map(len, (result.expectedFailures,
+        results = list(map(len, (result.expectedFailures,
                             result.unexpectedSuccesses,
-                            result.skipped))
+                            result.skipped)))
         expectedFails, unexpectedSuccesses, skipped = results
         infos = []
         if not result.wasSuccessful():
             self.stream.write("FAILED")
-            failed, errored = map(len, (result.failures, result.errors))
+            failed, errored = list(map(len, (result.failures, result.errors)))
             if failed:
                 infos.append("failures=%d" % failed)
             if errored:

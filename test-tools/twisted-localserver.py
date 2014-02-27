@@ -161,7 +161,7 @@ class Dir(resource.Resource):
         return resource.Resource.locateChild(self, request, segments)
 
     def render(self, ctx):
-        print "render"
+        print("render")
         return http.Response(responsecode.FORBIDDEN)
 
 

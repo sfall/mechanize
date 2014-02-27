@@ -36,9 +36,9 @@ class HeaderTests(TestCase):
 
         # quotes should be stripped
         assert parse_ns_headers(['foo=bar; expires=01 Jan 2040 22:23:32 GMT']) == \
-               [[('foo', 'bar'), ('expires', 2209069412L), ('version', '0')]]
+               [[('foo', 'bar'), ('expires', 2209069412), ('version', '0')]]
         assert parse_ns_headers(['foo=bar; expires="01 Jan 2040 22:23:32 GMT"']) == \
-               [[('foo', 'bar'), ('expires', 2209069412L), ('version', '0')]]
+               [[('foo', 'bar'), ('expires', 2209069412), ('version', '0')]]
 
     def test_parse_ns_headers_version(self):
         from mechanize._headersutil import parse_ns_headers
@@ -96,8 +96,8 @@ class HeaderTests(TestCase):
             try:
                 result = split_header_words([arg])
             except:
-                import traceback, StringIO
-                f = StringIO.StringIO()
+                import traceback, io
+                f = io.StringIO()
                 traceback.print_exc(None, f)
                 result = "(error -- traceback follows)\n\n%s" % f.getvalue()
             assert result == expect, """

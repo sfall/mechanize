@@ -1,12 +1,12 @@
 """Tests for mechanize._response.seek_wrapper and friends."""
 
 import copy
-import cStringIO
+import io
 from unittest import TestCase
 
 class TestUnSeekable:
     def __init__(self, text):
-        self._file = cStringIO.StringIO(text)
+        self._file = io.StringIO(text)
         self.log = []
 
     def tell(self): return self._file.tell()
@@ -52,7 +52,7 @@ jumps over the lazy
 dog.
 
 """
-    text_lines = map(lambda l: l+"\n", text.split("\n")[:-1])
+    text_lines = [l+"\n" for l in text.split("\n")[:-1]]
 
     def testSeekable(self):
         from mechanize._response import seek_wrapper
@@ -139,10 +139,10 @@ dog.
         limit = 10
         while count < limit:
             if count == 5:
-                self.assertRaises(StopIteration, sfh.next)
+                self.assertRaises(StopIteration, sfh.__next__)
                 break
             else:
-                sfh.next() == text_lines[count]
+                next(sfh) == text_lines[count]
             count = count + 1
         else:
             assert False, "StopIteration not raised"

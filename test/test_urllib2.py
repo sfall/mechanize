@@ -10,8 +10,8 @@ to mechanize.
 # CacheFTPHandler (hard to write)
 # parse_keqv_list, parse_http_list
 
-import StringIO
-import httplib
+import io
+import http.client
 import os
 import sys
 import unittest
@@ -275,15 +275,15 @@ def http_message(mapping):
 
     """
     f = []
-    for kv in mapping.items():
+    for kv in list(mapping.items()):
         f.append("%s: %s" % kv)
     f.append("")
-    msg = httplib.HTTPMessage(StringIO.StringIO("\r\n".join(f)))
+    msg = http.client.HTTPMessage(io.StringIO("\r\n".join(f)))
     return msg
 
-class MockResponse(StringIO.StringIO):
+class MockResponse(io.StringIO):
     def __init__(self, code, msg, headers, data, url=None):
-        StringIO.StringIO.__init__(self, data)
+        io.StringIO.__init__(self, data)
         self.code, self.msg, self.headers, self.url = code, msg, headers, url
     def info(self):
         return self.headers
@@ -400,7 +400,7 @@ class MockHTTPHandler(mechanize.BaseHandler):
         self.requests = []
     def http_open(self, req):
         import mimetools, copy
-        from StringIO import StringIO
+        from io import StringIO
         self.requests.append(copy.deepcopy(req))
         if self._count == 0:
             self._count = self._count + 1
@@ -507,7 +507,7 @@ class OpenerDirectorTests(unittest.TestCase):
         o.add_handler(p)
         o._maybe_reindex_handlers()
         self.assertEqual(o.handle_open, {"http": [h]})
-        self.assertEqual(len(o.process_response.keys()), 1)
+        self.assertEqual(len(list(o.process_response.keys())), 1)
         self.assertEqual(list(o.process_response["http"]), [p])
         self.assertEqual(list(o._any_response), [p])
         self.assertEqual(o.handlers, [h, p])
@@ -665,8 +665,8 @@ class OpenerDirectorTests(unittest.TestCase):
 
 
 def sanepathname2url(path):
-    import urllib
-    urlpath = urllib.pathname2url(path)
+    import urllib.request, urllib.parse, urllib.error
+    urlpath = urllib.request.pathname2url(path)
     if os.name == "nt" and urlpath.startswith("///"):
         urlpath = urlpath[2:]
     # XXX don't ask me about the mac...
@@ -712,7 +712,7 @@ class HandlerTests(mechanize._testcase.TestCase):
             def __init__(self, data): self.data = data
             def retrfile(self, filename, filetype):
                 self.filename, self.filetype = filename, filetype
-                return StringIO.StringIO(self.data), len(self.data)
+                return io.StringIO(self.data), len(self.data)
 
         class NullFTPHandler(mechanize.FTPHandler):
             def __init__(self, data): self.data = data
@@ -851,7 +851,7 @@ class HandlerTests(mechanize._testcase.TestCase):
             def request(self, method, url, body=None, headers={}):
                 self.method = method
                 self.selector = url
-                self.req_headers += headers.items()
+                self.req_headers += list(headers.items())
                 self.req_headers.sort()
                 if body:
                     self.data = body
@@ -1006,7 +1006,7 @@ class HandlerTests(mechanize._testcase.TestCase):
         try:
             h.http_error_default(
                 request, response, code, msg, response.info())
-        except mechanize.HTTPError, exc:
+        except mechanize.HTTPError as exc:
             self.assert_(exc is not response)
             self.assert_(exc.fp is response)
         else:
@@ -1018,7 +1018,7 @@ class HandlerTests(mechanize._testcase.TestCase):
         try:
             h.http_error_default(
                 request, error, code, msg, error.info())
-        except mechanize.HTTPError, exc:
+        except mechanize.HTTPError as exc:
             self.assert_(exc is error)
         else:
             self.assert_(False)
@@ -1066,7 +1066,7 @@ class HandlerTests(mechanize._testcase.TestCase):
         req = Request(url)
         try:
             h.http_request(req)
-        except mechanize.HTTPError, e:
+        except mechanize.HTTPError as e:
             self.assert_(e.request == req)
             self.assert_(e.code == 403)
         # new host: reload robots.txt (even though the host and port are
@@ -1117,8 +1117,8 @@ class HandlerTests(mechanize._testcase.TestCase):
             def __init__(self):
                 self.requests = []
             def http_open(self, req):
-                import mimetools, httplib, copy
-                from StringIO import StringIO
+                import mimetools, http.client, copy
+                from io import StringIO
                 self.requests.append(copy.deepcopy(req))
                 if req.get_full_url() == "http://example.com/robots.txt":
                     hdr = "Location: http://example.com/en/robots.txt\r\n\r\n"
@@ -1346,7 +1346,7 @@ class HandlerTests(mechanize._testcase.TestCase):
              HTTPCookieProcessor, HTTPError, HTTPDefaultErrorHandler, \
              HTTPRedirectHandler
 
-        from test_cookies import interact_netscape
+        from .test_cookies import interact_netscape
 
         cj = CookieJar()
         interact_netscape(cj, "http://www.example.com/", "spam=eggs")
@@ -1569,7 +1569,7 @@ class HeadParserTests(unittest.TestCase):
              [])
             ]
         for html, result in htmls:
-            self.assertEqual(parse_head(StringIO.StringIO(html), HeadParser()), result)
+            self.assertEqual(parse_head(io.StringIO(html), HeadParser()), result)
 
 
 

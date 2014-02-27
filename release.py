@@ -141,7 +141,7 @@ def check_not_installed(env, python):
     bogus_version = release.parse_version("0.0.0")
     try:
         check_version_equals(env, bogus_version, python)
-    except WrongVersionError, exc:
+    except WrongVersionError as exc:
         if exc.version is not None:
             raise
     else:
@@ -327,7 +327,7 @@ class Releaser(object):
         self._set_next_release_version()
 
     def print_next_tag(self, log):
-        print self._release_version
+        print(self._release_version)
 
     def _verify_version(self, path):
         if str(self._release_version) not in \
@@ -637,7 +637,7 @@ class Releaser(object):
             self._env.cmd(["readlink", "-e", full_path],
                           stdout=open(os.devnull, "w"))
         except cmd_env.CommandFailedError:
-            print "not staging (does not exist):", full_path
+            print("not staging (does not exist):", full_path)
             return
         if dest_basename is None:
             dest_basename = os.path.basename(path)
@@ -645,10 +645,10 @@ class Releaser(object):
         try:
             self._env.cmd(["cmp", full_path, dest])
         except cmd_env.CommandFailedError:
-            print "staging: %s -> %s" % (full_path, dest)
+            print("staging: %s -> %s" % (full_path, dest))
             self._env.cmd(["cp", full_path, dest])
         else:
-            print "not staging (unchanged): %s -> %s" % (full_path, dest)
+            print("not staging (unchanged): %s -> %s" % (full_path, dest))
 
     def ensure_unmodified(self, log):
         if self._build_tools_path:
@@ -882,7 +882,7 @@ URL
                       re.match("^ \* Update (?:changelog|version)$", line,
                                re.I))
         self._in_release_dir.cmd(cmd_env.write_file_cmd(
-                "announce_email.txt", u"""\
+                "announce_email.txt", """\
 ANN: mechanize {version} released
 
 http://wwwsearch.sourceforge.net/mechanize/

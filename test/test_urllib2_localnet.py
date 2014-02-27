@@ -4,9 +4,9 @@
 
 import mimetools
 import threading
-import urlparse
+import urllib.parse
 import mechanize
-import BaseHTTPServer
+import http.server
 import unittest
 
 from mechanize._testcase import TestCase
@@ -17,13 +17,13 @@ import testprogram
 
 # Loopback http server infrastructure
 
-class LoopbackHttpServer(BaseHTTPServer.HTTPServer):
+class LoopbackHttpServer(http.server.HTTPServer):
     """HTTP server w/ a few modifications that make it useful for
     loopback testing purposes.
     """
 
     def __init__(self, server_address, RequestHandlerClass):
-        BaseHTTPServer.HTTPServer.__init__(self,
+        http.server.HTTPServer.__init__(self,
                                            server_address,
                                            RequestHandlerClass)
 
@@ -168,13 +168,13 @@ class DigestAuthHandler:
         if len(self._users) == 0:
             return True
 
-        if not request_handler.headers.has_key('Proxy-Authorization'):
+        if 'Proxy-Authorization' not in request_handler.headers:
             return self._return_auth_challenge(request_handler)
         else:
             auth_dict = self._create_auth_dict(
                 request_handler.headers['Proxy-Authorization']
                 )
-            if self._users.has_key(auth_dict["username"]):
+            if auth_dict["username"] in self._users:
                 password = self._users[ auth_dict["username"] ]
             else:
                 return self._return_auth_challenge(request_handler)
@@ -201,7 +201,7 @@ class DigestAuthHandler:
 
 # Proxy test infrastructure
 
-class FakeProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class FakeProxyHandler(http.server.BaseHTTPRequestHandler):
     """This is a 'fake proxy' that makes it look like the entire
     internet has gone down due to a sudden zombie invasion.  It main
     utility is in providing us with authentication support for
@@ -214,7 +214,7 @@ class FakeProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # This has to be set before calling our parent's __init__(), which will
         # try to call do_GET().
         self.digest_auth_handler = digest_auth_handler
-        BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
+        http.server.BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
 
     def log_message(self, format, *args):
         # Uncomment the next line for debugging.
@@ -222,7 +222,7 @@ class FakeProxyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        (scm, netloc, path, params, query, fragment) = urlparse.urlparse(
+        (scm, netloc, path, params, query, fragment) = urllib.parse.urlparse(
             self.path, 'http')
         self.short_path = path
         if self.digest_auth_handler.handle_request(self):
@@ -310,7 +310,7 @@ class ProxyAuthTests(TestCase):
             result.close()
 
 
-class RecordingHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class RecordingHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     server_version = "TestHTTP/"
     protocol_version = "HTTP/1.0"
@@ -322,7 +322,7 @@ class RecordingHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self._get_next_response = get_next_response
         self._record_request = record_request
         self._record_received_headers = record_received_headers
-        BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, *args, **kwds)
+        http.server.BaseHTTPRequestHandler.__init__(self, *args, **kwds)
 
     def do_GET(self):
         body = self.send_head()
@@ -425,7 +425,7 @@ class TestUrlopen(TestCase):
 
         try:
             mechanize.urlopen('http://localhost:%s/weeble' % handler.port)
-        except mechanize.URLError, f:
+        except mechanize.URLError as f:
             pass
         else:
             self.fail('404 should raise URLError')

@@ -41,7 +41,7 @@ class Test(mechanize._testcase.TestCase):
         def non_equal_value(value):
             if value is None:
                 new_value = "80"
-            elif isinstance(value, basestring):
+            elif isinstance(value, str):
                 new_value = value + "1"
             elif isinstance(value, bool):
                 new_value = not value
@@ -55,6 +55,6 @@ class Test(mechanize._testcase.TestCase):
             assert new_value != value, value
             return new_value
         cookie = make_cookie()
-        for arg, default_value in cookie_args().iteritems():
+        for arg, default_value in cookie_args().items():
             new_value = non_equal_value(default_value)
             self.assertNotEqual(make_cookie(**{arg: new_value}), cookie)

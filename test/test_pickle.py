@@ -1,5 +1,5 @@
-import cPickle
-import cStringIO as StringIO
+import pickle
+import io as StringIO
 import pickle
 
 import mechanize

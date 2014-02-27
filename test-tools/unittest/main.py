@@ -68,7 +68,7 @@ class TestProgram(object):
                  argv=None, testRunner=None,
                  testLoader=loader.defaultTestLoader, exit=True,
                  verbosity=1):
-        if isinstance(module, basestring):
+        if isinstance(module, str):
             self.module = __import__(module)
             for part in module.split('.')[1:]:
                 self.module = getattr(self.module, part)
@@ -88,8 +88,8 @@ class TestProgram(object):
 
     def usageExit(self, msg=None):
         if msg:
-            print msg
-        print self.USAGE % self.__dict__
+            print(msg)
+        print(self.USAGE % self.__dict__)
         sys.exit(2)
 
     def parseArgs(self, argv):
@@ -119,7 +119,7 @@ class TestProgram(object):
             else:
                 self.testNames = (self.defaultTest,)
             self.createTests()
-        except getopt.error, msg:
+        except getopt.error as msg:
             self.usageExit(msg)
 
     def createTests(self):
@@ -162,7 +162,7 @@ class TestProgram(object):
     def runTests(self):
         if self.testRunner is None:
             self.testRunner = runner.TextTestRunner
-        if isinstance(self.testRunner, (type, types.ClassType)):
+        if isinstance(self.testRunner, type):
             try:
                 testRunner = self.testRunner(verbosity=self.verbosity)
             except TypeError:
