@@ -44,26 +44,13 @@ import urllib.request, urllib.parse, urllib.error
 import urllib.parse
 import bisect
 
-try:
-    from io import StringIO
-except ImportError:
-    from io import StringIO
+from io import StringIO
 
-try:
-    import hashlib
-except ImportError:
-    # python 2.4
-    import md5
-    import sha
-    def sha1_digest(bytes):
-        return sha.new(bytes).hexdigest()
-    def md5_digest(bytes):
-        return md5.new(bytes).hexdigest()
-else:
-    def sha1_digest(bytes):
-        return hashlib.sha1(bytes).hexdigest()
-    def md5_digest(bytes):
-        return hashlib.md5(bytes).hexdigest()
+import hashlib
+def sha1_digest(bytes):
+    return hashlib.sha1(bytes).hexdigest()
+def md5_digest(bytes):
+    return hashlib.md5(bytes).hexdigest()
 
 
 try:
