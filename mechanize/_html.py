@@ -15,7 +15,7 @@ import re
 
 from ._sgmllib_copy import SGMLParseError
 
-from . import _beautifulsoup
+from ._beautifulsoup import BeautifulSoup, Tag, Null
 from . import _form
 from ._headersutil import split_header_words, is_html as _is_html
 from . import _request
@@ -325,7 +325,7 @@ def unescape_charref(data, encoding):
         return repl
 
 
-class MechanizeBs(_beautifulsoup.BeautifulSoup):
+class MechanizeBs(BeautifulSoup):
     _entitydefs = html.entities.name2codepoint
     # don't want the magic Microsoft-char workaround
     PARSER_MASSAGE = [(re.compile('(<[^<>]*)/>'),
@@ -337,7 +337,7 @@ class MechanizeBs(_beautifulsoup.BeautifulSoup):
     def __init__(self, encoding, text=None, avoidParserProblems=True,
                  initialTextIsEverything=True):
         self._encoding = encoding
-        _beautifulsoup.BeautifulSoup.__init__(
+        BeautifulSoup.__init__(
             self, text, avoidParserProblems, initialTextIsEverything)
 
     def handle_charref(self, ref):
@@ -388,7 +388,7 @@ class RobustLinksFactory:
         base_url = self._base_url
         encoding = self._encoding
         for ch in bs.recursiveChildGenerator():
-            if (isinstance(ch, _beautifulsoup.Tag) and
+            if (isinstance(ch, Tag) and
                 ch.name in list(self.urltags.keys())+["base"]):
                 link = ch
                 attrs = bs.unescape_attrs(link.attrs)
@@ -437,7 +437,7 @@ class RobustTitleFactory:
 
     def title(self):
         title = self._bs.first("title")
-        if title == _beautifulsoup.Null:
+        if title == Null:
             return None
         else:
             inner_html = "".join([str(node) for node in title.contents])

@@ -70,7 +70,7 @@ import urllib.request, urllib.parse, urllib.error
 import urllib.parse
 import warnings
 
-from . import _beautifulsoup
+from ._beautifulsoup import BeautifulSoup, ICantBelieveItsBeautifulSoup
 from . import _request
 
 # from Python itself, for backwards compatibility of raised exceptions
@@ -788,15 +788,15 @@ class _AbstractBSFormParser(_AbstractSgmllibParser):
         self.end_body()
 
 
-class RobustFormParser(_AbstractBSFormParser, _beautifulsoup.BeautifulSoup):
+class RobustFormParser(_AbstractBSFormParser, BeautifulSoup):
 
     """Tries to be highly tolerant of incorrect HTML."""
 
-    bs_base_class = _beautifulsoup.BeautifulSoup
+    bs_base_class = BeautifulSoup
 
 
 class NestingRobustFormParser(_AbstractBSFormParser,
-                              _beautifulsoup.ICantBelieveItsBeautifulSoup):
+                              ICantBelieveItsBeautifulSoup):
 
     """Tries to be highly tolerant of incorrect HTML.
 
@@ -804,7 +804,7 @@ class NestingRobustFormParser(_AbstractBSFormParser,
     above missing end tags (see BeautifulSoup docs).
     """
 
-    bs_base_class = _beautifulsoup.ICantBelieveItsBeautifulSoup
+    bs_base_class = ICantBelieveItsBeautifulSoup
 
 
 #FormParser = XHTMLCompatibleFormParser  # testing hack
