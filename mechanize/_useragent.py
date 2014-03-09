@@ -84,9 +84,6 @@ class UserAgentBase(OpenerDirector):
                         "_proxy", "_proxy_basicauth", "_proxy_digestauth",
                         "_robots",
                         ]
-    if hasattr(_urllib2, 'HTTPSHandler'):
-        handler_classes["https"] = HTTPSHandler
-        default_schemes.append("https")
 
     def __init__(self):
         OpenerDirector.__init__(self)

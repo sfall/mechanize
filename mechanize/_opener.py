@@ -369,8 +369,6 @@ class OpenerFactory:
         HTTPCookieProcessor,
         HTTPErrorProcessor,
         ]
-    if hasattr(httplib, 'HTTPS'):
-        default_classes.append(HTTPSHandler)
     handlers = []
     replacement_handlers = []
 
