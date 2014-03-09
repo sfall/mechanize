@@ -17,28 +17,33 @@ __author__ = 'sfall_000'
 import re
 from os import chdir, listdir
 
-path = "_urllib2.py"
+path = "_gzip.py"
 chdir(r'C:\Users\sfall_000\Documents\GitHub\mechanize\mechanize')
-#files = listdir('.')
+files = listdir('.')
 
 import_prog = re.compile("from . import ([_A-Za-z0-9]+)")
-# for path in files:
-with open(path, 'r+') as f:
-    contents = f.read()
-    contents_minus = re.sub("#.+\n", "", contents)
-    for match in import_prog.finditer(contents):
-        pkg = match.group(1)
-        uses = re.finditer(''.join([pkg, '.', '([_A-Za-z0-9]+)']), contents_minus)
-        members = set([use.group(1) for use in uses])
-        for m in members:
-            if len(re.findall(m, contents_minus)) > len(members):
-                members.remove(m)
-                print('Look into ', m, ' in the "', path, '" file.')
-                continue
-            contents = re.sub(''.join([pkg, '.', m]), m, contents)
-        pattern = ''.join(['from . import ', pkg])
-        replacement = ''.join(['from .', pkg, ' import ']+[', '.join(members)])
-        contents = re.sub(pattern, replacement, contents)
-    f.seek(0)
-    f.write(contents)
-    f.truncate()
+for path in files:
+    with open(path, 'r+') as f:
+        contents = f.read()
+        contents_minus = re.sub("#.+\n", "", contents)
+        for match in import_prog.finditer(contents):
+            pkg = match.group(1)
+            uses = re.findall(''.join(['[^\w.]', pkg, '\.', '([_A-Za-z0-9]+)']), contents_minus)
+            members = set(uses)
+            existing = []
+            for m in members:
+                new_mem = m
+                if re.search(' '+m, contents_minus):
+                    existing.append(m)
+                    new_mem = 'ex_'+m
+                    print('Match:', pkg, '\n', m, 'changed to', new_mem, 'in the', path, 'file.')
+                contents = re.sub(''.join([pkg, '.', m]), new_mem, contents)
+            for e in existing:
+                members.remove(e)
+                members.add(e+' as ex_'+e)
+            pattern = ''.join(['from . import ', pkg])
+            replacement = ''.join(['from .', pkg, ' import ']+[', '.join(members)])
+            contents = re.sub(pattern, replacement, contents)
+        f.seek(0)
+        f.write(contents)
+        f.truncate()

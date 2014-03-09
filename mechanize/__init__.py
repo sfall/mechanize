@@ -133,10 +133,6 @@ from ._html import \
 
 # urllib2 work-alike interface.  This is a superset of the urllib2 interface.
 from ._urllib2 import *
-from . import _urllib2
-if hasattr(_urllib2, "HTTPSHandler"):
-    __all__.append("HTTPSHandler")
-del _urllib2
 
 # misc
 from ._http import HeadParser

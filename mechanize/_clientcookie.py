@@ -46,7 +46,7 @@ DEFAULT_HTTP_PORT = "80"
 
 from ._headersutil import split_header_words, parse_ns_headers
 from ._util import isstringlike
-from . import _rfc3986
+from ._rfc3986 import urlsplit
 
 debug = logging.getLogger("mechanize.cookies").debug
 
@@ -156,7 +156,7 @@ def request_host(request):
 
     """
     url = request.get_full_url()
-    host = _rfc3986.urlsplit(url)[1]
+    host = urlsplit(url)[1]
     if host is None:
         host = request.get_header("Host", "")
     # remove port, if present
@@ -183,7 +183,7 @@ def effective_request_host(request):
 def request_path(request):
     """Return path component of request-URI, as defined by RFC 2965."""
     url = request.get_full_url()
-    path = escape_path(_rfc3986.urlsplit(url)[2])
+    path = escape_path(urlsplit(url)[2])
     if not path.startswith("/"):
         path = "/" + path
     return path

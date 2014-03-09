@@ -20,10 +20,10 @@ except NameError:
     set = sets.Set
 
 from ._request import Request
-from . import _response
-from . import _rfc3986
-from . import _sockettimeout
-from . import _urllib2_fork
+from ._response import seek_wrapped_response
+from ._rfc3986 import urlsplit
+from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
+from ._urllib2_fork import HTTPSHandler, HTTPDefaultErrorHandler, ProxyHandler, HTTPRedirectHandler, UnknownHandler, FTPHandler, FileHandler, OpenerDirector as ex_OpenerDirector, HTTPErrorProcessor, HTTPCookieProcessor, HTTPHandler
 from ._util import isstringlike
 
 open_file = open
@@ -44,9 +44,9 @@ def set_request_attr(req, name, value, default):
         setattr(req, name, value)
 
 
-class OpenerDirector(_urllib2_fork.OpenerDirector):
+class OpenerDirector(ex_OpenerDirector):
     def __init__(self):
-        _urllib2_fork.OpenerDirector.__init__(self)
+        ex_OpenerDirector.__init__(self)
         # really none of these are (sanely) public -- the lack of initial
         # underscore on some is just due to following urllib2
         self.process_response = {}
@@ -153,7 +153,7 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
         self._any_response = any_response
 
     def _request(self, url_or_req, data, visit,
-                 timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                 timeout=_GLOBAL_DEFAULT_TIMEOUT):
         if isstringlike(url_or_req):
             req = Request(url_or_req, data, visit=visit, timeout=timeout)
         else:
@@ -164,11 +164,11 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
             # XXX yuck
             set_request_attr(req, "visit", visit, None)
             set_request_attr(req, "timeout", timeout,
-                             _sockettimeout._GLOBAL_DEFAULT_TIMEOUT)
+                             _GLOBAL_DEFAULT_TIMEOUT)
         return req
 
     def open(self, fullurl, data=None,
-             timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+             timeout=_GLOBAL_DEFAULT_TIMEOUT):
         req = self._request(fullurl, data, None, timeout)
         req_scheme = req.get_type()
 
@@ -189,7 +189,7 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
 
         # In Python >= 2.4, .open() supports processors already, so we must
         # call ._open() instead.
-        urlopen = _urllib2_fork.OpenerDirector._open
+        urlopen = ex_OpenerDirector._open
         response = urlopen(self, req, data)
 
         # post-process response
@@ -228,7 +228,7 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
 
     BLOCK_SIZE = 1024*8
     def retrieve(self, fullurl, filename=None, reporthook=None, data=None,
-                 timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT,
+                 timeout=_GLOBAL_DEFAULT_TIMEOUT,
                  open=open_file):
         """Returns (filename, headers).
 
@@ -258,7 +258,7 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
             if filename:
                 tfp = open(filename, 'wb')
             else:
-                path = _rfc3986.urlsplit(req.get_full_url())[2]
+                path = urlsplit(req.get_full_url())[2]
                 suffix = os.path.splitext(path)[1]
                 fd, filename = tempfile.mkstemp(suffix)
                 self._tempfiles.append(filename)
@@ -298,7 +298,7 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
         return result
 
     def close(self):
-        _urllib2_fork.OpenerDirector.close(self)
+        ex_OpenerDirector.close(self)
 
         # make it very obvious this object is no longer supposed to be used
         self.open = self.error = self.retrieve = self.add_handler = None
@@ -313,7 +313,7 @@ class OpenerDirector(_urllib2_fork.OpenerDirector):
 
 
 def wrapped_open(urlopen, process_response_object, fullurl, data=None,
-                 timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                 timeout=_GLOBAL_DEFAULT_TIMEOUT):
     success = True
     try:
         response = urlopen(fullurl, data, timeout)
@@ -333,9 +333,9 @@ def wrapped_open(urlopen, process_response_object, fullurl, data=None,
 class ResponseProcessingOpener(OpenerDirector):
 
     def open(self, fullurl, data=None,
-             timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+             timeout=_GLOBAL_DEFAULT_TIMEOUT):
         def bound_open(fullurl, data=None,
-                       timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                       timeout=_GLOBAL_DEFAULT_TIMEOUT):
             return OpenerDirector.open(self, fullurl, data, timeout)
         return wrapped_open(
             bound_open, self.process_response_object, fullurl, data, timeout)
@@ -346,7 +346,7 @@ class ResponseProcessingOpener(OpenerDirector):
 
 class SeekableResponseOpener(ResponseProcessingOpener):
     def process_response_object(self, response):
-        return _response.seek_wrapped_response(response)
+        return seek_wrapped_response(response)
 
 
 def isclass(obj):
@@ -358,19 +358,19 @@ class OpenerFactory:
 
     default_classes = [
         # handlers
-        _urllib2_fork.ProxyHandler,
-        _urllib2_fork.UnknownHandler,
-        _urllib2_fork.HTTPHandler,
-        _urllib2_fork.HTTPDefaultErrorHandler,
-        _urllib2_fork.HTTPRedirectHandler,
-        _urllib2_fork.FTPHandler,
-        _urllib2_fork.FileHandler,
+        ProxyHandler,
+        UnknownHandler,
+        HTTPHandler,
+        HTTPDefaultErrorHandler,
+        HTTPRedirectHandler,
+        FTPHandler,
+        FileHandler,
         # processors
-        _urllib2_fork.HTTPCookieProcessor,
-        _urllib2_fork.HTTPErrorProcessor,
+        HTTPCookieProcessor,
+        HTTPErrorProcessor,
         ]
     if hasattr(httplib, 'HTTPS'):
-        default_classes.append(_urllib2_fork.HTTPSHandler)
+        default_classes.append(HTTPSHandler)
     handlers = []
     replacement_handlers = []
 
@@ -414,7 +414,7 @@ build_opener = OpenerFactory().build_opener
 
 _opener = None
 urlopen_lock = _threading.Lock()
-def urlopen(url, data=None, timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+def urlopen(url, data=None, timeout=_GLOBAL_DEFAULT_TIMEOUT):
     global _opener
     if _opener is None:
         urlopen_lock.acquire()
@@ -426,7 +426,7 @@ def urlopen(url, data=None, timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
     return _opener.open(url, data, timeout)
 
 def urlretrieve(url, filename=None, reporthook=None, data=None,
-                timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                timeout=_GLOBAL_DEFAULT_TIMEOUT):
     global _opener
     if _opener is None:
         urlopen_lock.acquire()

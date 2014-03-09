@@ -12,11 +12,11 @@ included with the distribution).
 import copy, re, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
 
 from ._html import DefaultFactory
-from . import _response
-from . import _request
-from . import _rfc3986
-from . import _sockettimeout
-from . import _urllib2_fork
+from ._response import upgrade_response
+from ._request import Request as ex_Request
+from ._rfc3986 import urlunsplit, urljoin, urlsplit
+from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
+from ._urllib2_fork import BaseHandler
 from ._useragent import UserAgentBase
 
 class BrowserStateError(Exception): pass
@@ -60,7 +60,7 @@ class History:
         del self._history[:]
 
 
-class HTTPRefererProcessor(_urllib2_fork.BaseHandler):
+class HTTPRefererProcessor(BaseHandler):
     def http_request(self, request):
         # See RFC 2616 14.36.  The only times we know the source of the
         # request URI has a URI associated with it are redirect, and
@@ -125,7 +125,7 @@ class Browser(UserAgentBase):
         self._history = history
 
         if request_class is None:
-            request_class = _request.Request
+            request_class = ex_Request
 
         if factory is None:
             factory = DefaultFactory()
@@ -142,7 +142,7 @@ class Browser(UserAgentBase):
     def close(self):
         UserAgentBase.close(self)
         if self._response is not None:
-            self._response.close()    
+            self.ex_close()    
         if self._history is not None:
             self._history.close()
             self._history = None
@@ -176,14 +176,14 @@ class Browser(UserAgentBase):
             original_scheme in ["http", "https"] and
             not (original_scheme == "https" and scheme != "https")):
             # strip URL fragment (RFC 2616 14.36)
-            parts = _rfc3986.urlsplit(self.request.get_full_url())
+            parts = urlsplit(self.request.get_full_url())
             parts = parts[:-1]+(None,)
-            referer = _rfc3986.urlunsplit(parts)
+            referer = urlunsplit(parts)
             request.add_unredirected_header("Referer", referer)
         return request
 
     def open_novisit(self, url, data=None,
-                     timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                     timeout=_GLOBAL_DEFAULT_TIMEOUT):
         """Open a URL without visiting it.
 
         Browser state (including request, response, history, forms and links)
@@ -199,23 +199,23 @@ class Browser(UserAgentBase):
         return self._mech_open(url, data, visit=False, timeout=timeout)
 
     def open(self, url, data=None,
-             timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+             timeout=_GLOBAL_DEFAULT_TIMEOUT):
         return self._mech_open(url, data, timeout=timeout)
 
     def _mech_open(self, url, data=None, update_history=True, visit=None,
-                   timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                   timeout=_GLOBAL_DEFAULT_TIMEOUT):
         try:
             url.get_full_url
         except AttributeError:
             # string URL -- convert to absolute URL if required
-            scheme, authority = _rfc3986.urlsplit(url)[:2]
+            scheme, authority = urlsplit(url)[:2]
             if scheme is None:
                 # relative URL
                 if self._response is None:
                     raise BrowserStateError(
                         "can't fetch relative reference: "
                         "not viewing any document")
-                url = _rfc3986.urljoin(self._response.geturl(), url)
+                url = urljoin(self.ex_geturl(), url)
 
         request = self._request(url, data, visit, timeout)
         visit = request.visit
@@ -249,7 +249,7 @@ class Browser(UserAgentBase):
             self._set_response(response, False)
             response = copy.copy(self._response)
         elif response is not None:
-            response = _response.upgrade_response(response)
+            response = upgrade_response(response)
 
         if not success:
             raise response
@@ -259,7 +259,7 @@ class Browser(UserAgentBase):
         text = []
         text.append("<%s " % self.__class__.__name__)
         if self._response:
-            text.append("visiting %s" % self._response.geturl())
+            text.append("visiting %s" % self.ex_geturl())
         else:
             text.append("(not visiting a URL)")
         if self.form:
@@ -301,9 +301,9 @@ class Browser(UserAgentBase):
 
         self.form = None
         if response is not None:
-            response = _response.upgrade_response(response)
+            response = upgrade_response(response)
         if close_current and self._response is not None:
-            self._response.close()
+            self.ex_close()
         self._response = response
         self._factory.set_response(response)
 
@@ -314,13 +314,13 @@ class Browser(UserAgentBase):
         current response.
         """
         if request is None:
-            request = _request.Request(response.geturl())
+            request = ex_Request(response.geturl())
         self._visit_request(request, True)
         self._set_response(response, False)
 
     def _visit_request(self, request, update_history):
         if self._response is not None:
-            self._response.close()
+            self.ex_close()
         if self.request is not None and update_history:
             self._history.add(self.request, self._response)
         self._response = None
@@ -332,14 +332,14 @@ class Browser(UserAgentBase):
         """Get URL of current document."""
         if self._response is None:
             raise BrowserStateError("not viewing any document")
-        return self._response.geturl()
+        return self.ex_geturl()
 
     def reload(self):
         """Reload current document, and return response object."""
         if self.request is None:
             raise BrowserStateError("no URL has yet been .open()ed")
         if self._response is not None:
-            self._response.close()
+            self.ex_close()
         return self._mech_open(self.request, update_history=False)
 
     def back(self, n=1):
@@ -349,7 +349,7 @@ class Browser(UserAgentBase):
 
         """
         if self._response is not None:
-            self._response.close()
+            self.ex_close()
         self.request, response = self._history.back(n, self._response)
         self.set_response(response)
         if not response.read_complete:

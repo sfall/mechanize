@@ -71,12 +71,9 @@ import urllib.parse
 import warnings
 
 from ._beautifulsoup import BeautifulSoup, ICantBelieveItsBeautifulSoup
-from . import _request
+from ._request import Request
 
-# from Python itself, for backwards compatibility of raised exceptions
-import sgmllib
-# bundled copy of sgmllib
-from . import _sgmllib_copy
+from ._sgmllib_copy import SGMLParseError, SGMLParser
 import collections
 
 
@@ -354,7 +351,7 @@ class ItemCountError(ValueError): pass
 # for backwards compatibility, ParseError derives from exceptions that were
 # raised by versions of ClientForm <= 0.2.5
 # TODO: move to _html
-class ParseError(sgmllib.SGMLParseError,
+class ParseError(SGMLParseError,
                  html.parser.HTMLParseError):
 
     def __init__(self, *args, **kwds):
@@ -748,20 +745,20 @@ class _AbstractSgmllibParser(_AbstractFormParser):
         return attrs  # ditto
 
 
-class FormParser(_AbstractSgmllibParser, _sgmllib_copy.SGMLParser):
+class FormParser(_AbstractSgmllibParser, SGMLParser):
     """Good for tolerance of incorrect HTML, bad for XHTML."""
     def __init__(self, entitydefs=None, encoding=DEFAULT_ENCODING):
-        _sgmllib_copy.SGMLParser.__init__(self)
+        SGMLParser.__init__(self)
         _AbstractFormParser.__init__(self, entitydefs, encoding)
 
     def feed(self, data):
         try:
-            _sgmllib_copy.SGMLParser.feed(self, data)
-        except _sgmllib_copy.SGMLParseError as exc:
+            SGMLParser.feed(self, data)
+        except SGMLParseError as exc:
             raise ParseError(exc)
 
     def close(self):
-        _sgmllib_copy.SGMLParser.close(self)
+        SGMLParser.close(self)
         self.end_body()
 
 
@@ -780,7 +777,7 @@ class _AbstractBSFormParser(_AbstractSgmllibParser):
     def feed(self, data):
         try:
             self.bs_base_class.feed(self, data)
-        except _sgmllib_copy.SGMLParseError as exc:
+        except SGMLParseError as exc:
             raise ParseError(exc)
 
     def close(self):
@@ -814,7 +811,7 @@ class NestingRobustFormParser(_AbstractBSFormParser,
 def ParseResponseEx(response,
                     select_default=False,
                     form_parser_class=FormParser,
-                    request_class=_request.Request,
+                    request_class=Request,
                     entitydefs=None,
                     encoding=DEFAULT_ENCODING,
 
@@ -848,7 +845,7 @@ def ParseResponseEx(response,
 def ParseFileEx(file, base_uri,
                 select_default=False,
                 form_parser_class=FormParser,
-                request_class=_request.Request,
+                request_class=Request,
                 entitydefs=None,
                 encoding=DEFAULT_ENCODING,
 
@@ -965,7 +962,7 @@ def _ParseFileEx(file, base_uri,
                  select_default=False,
                  ignore_errors=False,
                  form_parser_class=FormParser,
-                 request_class=_request.Request,
+                 request_class=Request,
                  entitydefs=None,
                  backwards_compat=True,
                  encoding=DEFAULT_ENCODING,
@@ -1419,7 +1416,7 @@ class IsindexControl(ScalarControl):
     def _totally_ordered_pairs(self):
         return []
 
-    def _click(self, form, coord, return_type, request_class=_request.Request):
+    def _click(self, form, coord, return_type, request_class=Request):
         # Relative URL for ISINDEX submission: instead of "foo=bar+baz",
         # want "bar+baz".
         # This doesn't seem to be specified in HTML 4.01 spec. (ISINDEX is
@@ -2346,7 +2343,7 @@ class SubmitControl(ScalarControl):
 
     def is_of_kind(self, kind): return kind == "clickable"
 
-    def _click(self, form, coord, return_type, request_class=_request.Request):
+    def _click(self, form, coord, return_type, request_class=Request):
         self._clicked = coord
         r = form._switch_click(return_type, request_class)
         self._clicked = False
@@ -2642,7 +2639,7 @@ class HTMLForm:
     def __init__(self, action, method="GET",
                  enctype="application/x-www-form-urlencoded",
                  name=None, attrs=None,
-                 request_class=_request.Request,
+                 request_class=Request,
                  forms=None, labels=None, id_to_labels=None,
                  backwards_compat=True):
         """
@@ -2973,7 +2970,7 @@ class HTMLForm:
 # Form submission methods, applying only to clickable controls.
 
     def click(self, name=None, type=None, id=None, nr=0, coord=(1,1),
-              request_class=_request.Request,
+              request_class=Request,
               label=None):
         """Return request that would result from clicking on a control.
 
@@ -3002,7 +2999,7 @@ class HTMLForm:
     def click_request_data(self,
                            name=None, type=None, id=None,
                            nr=0, coord=(1,1),
-                           request_class=_request.Request,
+                           request_class=Request,
                            label=None):
         """As for click method, but return a tuple (url, data, headers).
 
@@ -3187,7 +3184,7 @@ class HTMLForm:
         assert False
 
     def _click(self, name, type, id, label, nr, coord, return_type,
-               request_class=_request.Request):
+               request_class=Request):
         try:
             control = self._find_control(
                 name, type, "clickable", id, label, None, nr)
@@ -3259,7 +3256,7 @@ class HTMLForm:
         else:
             raise ValueError("Unknown method '%s'" % method)
 
-    def _switch_click(self, return_type, request_class=_request.Request):
+    def _switch_click(self, return_type, request_class=Request):
         # This is called by HTMLForm and clickable Controls to hide switching
         # on return_type.
         if return_type == "pairs":

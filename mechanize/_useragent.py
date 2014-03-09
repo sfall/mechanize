@@ -13,15 +13,15 @@ included with the distribution).
 
 import warnings
 
-from . import _auth
-from . import _gzip
-from . import _opener
-from . import _response
-from . import _sockettimeout
-from . import _urllib2
+from ._auth import HTTPProxyPasswordMgr
+from ._gzip import HTTPGzipProcessor
+from ._opener import wrapped_open, OpenerDirector
+from ._response import seek_wrapped_response
+from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
+from ._urllib2 import HTTPResponseDebugProcessor, HTTPSHandler, HTTPDefaultErrorHandler, HTTPBasicAuthHandler, FTPHandler, HTTPEquivProcessor, HTTPPasswordMgrWithDefaultRealm, ProxyDigestAuthHandler, HTTPRedirectHandler, UnknownHandler, ProxyHandler, HTTPRefreshProcessor, ProxyBasicAuthHandler, HTTPRobotRulesProcessor, HTTPRedirectDebugProcessor, FileHandler, HTTPDigestAuthHandler, HTTPErrorProcessor, HTTPCookieProcessor, HTTPSClientCertMgr, HTTPHandler
 
 
-class UserAgentBase(_opener.OpenerDirector):
+class UserAgentBase(OpenerDirector):
     """Convenient user-agent class.
 
     Do not use .add_handler() to add a handler for something already dealt with
@@ -47,33 +47,33 @@ class UserAgentBase(_opener.OpenerDirector):
 
     handler_classes = {
         # scheme handlers
-        "http": _urllib2.HTTPHandler,
+        "http": HTTPHandler,
         # CacheFTPHandler is buggy, at least in 2.3, so we don't use it
-        "ftp": _urllib2.FTPHandler,
-        "file": _urllib2.FileHandler,
+        "ftp": FTPHandler,
+        "file": FileHandler,
 
         # other handlers
-        "_unknown": _urllib2.UnknownHandler,
+        "_unknown": UnknownHandler,
         # HTTP{S,}Handler depend on HTTPErrorProcessor too
-        "_http_error": _urllib2.HTTPErrorProcessor,
-        "_http_default_error": _urllib2.HTTPDefaultErrorHandler,
+        "_http_error": HTTPErrorProcessor,
+        "_http_default_error": HTTPDefaultErrorHandler,
 
         # feature handlers
-        "_basicauth": _urllib2.HTTPBasicAuthHandler,
-        "_digestauth": _urllib2.HTTPDigestAuthHandler,
-        "_redirect": _urllib2.HTTPRedirectHandler,
-        "_cookies": _urllib2.HTTPCookieProcessor,
-        "_refresh": _urllib2.HTTPRefreshProcessor,
-        "_equiv": _urllib2.HTTPEquivProcessor,
-        "_proxy": _urllib2.ProxyHandler,
-        "_proxy_basicauth": _urllib2.ProxyBasicAuthHandler,
-        "_proxy_digestauth": _urllib2.ProxyDigestAuthHandler,
-        "_robots": _urllib2.HTTPRobotRulesProcessor,
-        "_gzip": _gzip.HTTPGzipProcessor,  # experimental!
+        "_basicauth": HTTPBasicAuthHandler,
+        "_digestauth": HTTPDigestAuthHandler,
+        "_redirect": HTTPRedirectHandler,
+        "_cookies": HTTPCookieProcessor,
+        "_refresh": HTTPRefreshProcessor,
+        "_equiv": HTTPEquivProcessor,
+        "_proxy": ProxyHandler,
+        "_proxy_basicauth": ProxyBasicAuthHandler,
+        "_proxy_digestauth": ProxyDigestAuthHandler,
+        "_robots": HTTPRobotRulesProcessor,
+        "_gzip": HTTPGzipProcessor,  # experimental!
 
         # debug handlers
-        "_debug_redirect": _urllib2.HTTPRedirectDebugProcessor,
-        "_debug_response_body": _urllib2.HTTPResponseDebugProcessor,
+        "_debug_redirect": HTTPRedirectDebugProcessor,
+        "_debug_response_body": HTTPResponseDebugProcessor,
         }
 
     default_schemes = ["http", "ftp", "file"]
@@ -85,11 +85,11 @@ class UserAgentBase(_opener.OpenerDirector):
                         "_robots",
                         ]
     if hasattr(_urllib2, 'HTTPSHandler'):
-        handler_classes["https"] = _urllib2.HTTPSHandler
+        handler_classes["https"] = HTTPSHandler
         default_schemes.append("https")
 
     def __init__(self):
-        _opener.OpenerDirector.__init__(self)
+        OpenerDirector.__init__(self)
 
         ua_handlers = self._ua_handlers = {}
         for scheme in (self.default_schemes+
@@ -110,19 +110,19 @@ class UserAgentBase(_opener.OpenerDirector):
         # Ensure default password managers are installed.
         pm = ppm = None
         if "_basicauth" in ua_handlers or "_digestauth" in ua_handlers:
-            pm = _urllib2.HTTPPasswordMgrWithDefaultRealm()
+            pm = HTTPPasswordMgrWithDefaultRealm()
         if ("_proxy_basicauth" in ua_handlers or
             "_proxy_digestauth" in ua_handlers):
-            ppm = _auth.HTTPProxyPasswordMgr()
+            ppm = HTTPProxyPasswordMgr()
         self.set_password_manager(pm)
         self.set_proxy_password_manager(ppm)
         # set default certificate manager
         if "https" in ua_handlers:
-            cm = _urllib2.HTTPSClientCertMgr()
+            cm = HTTPSClientCertMgr()
             self.set_client_cert_manager(cm)
 
     def close(self):
-        _opener.OpenerDirector.close(self)
+        OpenerDirector.close(self)
         self._ua_handlers = None
 
     # XXX
@@ -354,13 +354,13 @@ class UserAgent(UserAgentBase):
         self._seekable = bool(handle)
 
     def open(self, fullurl, data=None,
-             timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+             timeout=_GLOBAL_DEFAULT_TIMEOUT):
         if self._seekable:
             def bound_open(fullurl, data=None,
-                           timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                           timeout=_GLOBAL_DEFAULT_TIMEOUT):
                 return UserAgentBase.open(self, fullurl, data, timeout)
-            response = _opener.wrapped_open(
-                bound_open, _response.seek_wrapped_response, fullurl, data,
+            response = wrapped_open(
+                bound_open, seek_wrapped_response, fullurl, data,
                 timeout)
         else:
             response = UserAgentBase.open(self, fullurl, data)

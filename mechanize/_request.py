@@ -10,17 +10,17 @@ COPYING.txt included with the distribution).
 
 import logging
 
-from . import _rfc3986
-from . import _sockettimeout
-from ._urllib2_fork import Request as urllib2Request
+from ._rfc3986 import is_clean_uri
+from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
+from ._urllib2_fork import Request as ex_Request
 
 warn = logging.getLogger("mechanize").warning
 
 
-class Request(urllib2Request):
+class Request(ex_Request):
     def __init__(self, url, data=None, headers={},
                  origin_req_host=None, unverifiable=False, visit=None,
-                 timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                 timeout=_GLOBAL_DEFAULT_TIMEOUT):
         # In mechanize 0.2, the interpretation of a unicode url argument will
         # change: A unicode url argument will be interpreted as an IRI, and a
         # bytestring as a URI. For now, we accept unicode or bytestring.  We
@@ -28,10 +28,10 @@ class Request(urllib2Request):
         # contain characters which are legal), because that might break working
         # code (who knows what bytes some servers want to see, especially with
         # browser plugins for internationalised URIs).
-        if not _rfc3986.is_clean_uri(url):
+        if not is_clean_uri(url):
             warn("url argument is not a URI "
                  "(contains illegal characters) %r" % url)
-        urllib2Request.__init__(self, url, data, headers)
+        ex_Request.__init__(self, url, data, headers)
         self.selector = None
         self.visit = visit
         self.timeout = timeout

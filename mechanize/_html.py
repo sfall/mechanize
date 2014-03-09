@@ -16,10 +16,10 @@ import re
 from ._sgmllib_copy import SGMLParseError
 
 from ._beautifulsoup import BeautifulSoup, Tag, Null
-from . import _form
+from ._form import RobustFormParser, FormParser, ParseResponseEx, ParseError as ex_ParseError
 from ._headersutil import split_header_words, is_html as _is_html
-from . import _request
-from . import _rfc3986
+from ._request import Request
+from ._rfc3986 import urljoin, clean_url, urlunsplit, urlsplit
 
 DEFAULT_ENCODING = "latin-1"
 
@@ -103,7 +103,7 @@ class Link:
     def __init__(self, base_url, url, text, tag, attrs):
         assert None not in [url, tag, attrs]
         self.base_url = base_url
-        self.absolute_url = _rfc3986.urljoin(base_url, url)
+        self.absolute_url = urljoin(base_url, url)
         self.url, self.text, self.tag, self.attrs = url, text, tag, attrs
 
     def __cmp__(self, other):
@@ -125,10 +125,10 @@ class LinksFactory:
                  link_parser_class=None,
                  link_class=Link,
                  urltags=None):
-        from . import _pullparser
+        from ._pullparser import TolerantPullParser, NoMoreTokensError
 
         if link_parser_class is None:
-            link_parser_class = _pullparser.TolerantPullParser
+            link_parser_class = TolerantPullParser
         self.link_parser_class = link_parser_class
         self.link_class = link_class
         if urltags is None:
@@ -176,7 +176,7 @@ class LinksFactory:
                     # ignore this.
                     continue
 
-                url = _rfc3986.clean_url(url, encoding)
+                url = clean_url(url, encoding)
                 if tag == "a":
                     if token.type != "startendtag":
                         # hmm, this'd break if end tag is missing
@@ -187,7 +187,7 @@ class LinksFactory:
 
                 yield Link(base_url, url, text, tag, token.attrs)
         except SGMLParseError as exc:
-            raise _form.ParseError(exc)
+            raise ex_ParseError(exc)
 
 
 class FormsFactory:
@@ -206,10 +206,10 @@ class FormsFactory:
                  backwards_compat=False):
         self.select_default = select_default
         if form_parser_class is None:
-            form_parser_class = _form.FormParser
+            form_parser_class = FormParser
         self.form_parser_class = form_parser_class
         if request_class is None:
-            request_class = _request.Request
+            request_class = Request
         self.request_class = request_class
         self.backwards_compat = backwards_compat
         self._response = None
@@ -223,15 +223,15 @@ class FormsFactory:
 
     def forms(self):
         encoding = self.encoding
-        forms = _form.ParseResponseEx(
+        forms = ParseResponseEx(
             self._response,
             select_default=self.select_default,
             form_parser_class=self.form_parser_class,
             request_class=self.request_class,
             encoding=encoding,
-            _urljoin=_rfc3986.urljoin,
-            _urlparse=_rfc3986.urlsplit,
-            _urlunparse=_rfc3986.urlunsplit,
+            _urljoin=urljoin,
+            _urlparse=urlsplit,
+            _urlunparse=urlunsplit,
         )
         self.global_form = forms[0]
         return forms[1:]
@@ -246,14 +246,14 @@ class TitleFactory:
         self._encoding = encoding
 
     def _get_title_text(self, parser):
-        from . import _pullparser
+        from ._pullparser import TolerantPullParser, NoMoreTokensError
 
         text = []
         tok = None
         while 1:
             try:
                 tok = parser.get_token()
-            except _pullparser.NoMoreTokensError:
+            except NoMoreTokensError:
                 break
             if tok.type == "data":
                 text.append(str(tok))
@@ -272,19 +272,19 @@ class TitleFactory:
         return COMPRESS_RE.sub(" ", "".join(text).strip())
 
     def title(self):
-        from . import _pullparser
+        from ._pullparser import TolerantPullParser, NoMoreTokensError
 
-        p = _pullparser.TolerantPullParser(
+        p = TolerantPullParser(
             self._response, encoding=self._encoding)
         try:
             try:
                 p.get_tag("title")
-            except _pullparser.NoMoreTokensError:
+            except NoMoreTokensError:
                 return None
             else:
                 return self._get_title_text(p)
         except SGMLParseError as exc:
-            raise _form.ParseError(exc)
+            raise ex_ParseError(exc)
 
 
 def unescape(data, entities, encoding):
@@ -403,7 +403,7 @@ class RobustLinksFactory:
                 url = attrs_dict.get(url_attr)
                 if not url:
                     continue
-                url = _rfc3986.clean_url(url, encoding)
+                url = clean_url(url, encoding)
                 text = link.fetchText(lambda t: True)
                 if not text:
                     # follow _pullparser's weird behaviour rigidly
@@ -420,7 +420,7 @@ class RobustFormsFactory(FormsFactory):
     def __init__(self, *args, **kwds):
         args = form_parser_args(*args, **kwds)
         if args.form_parser_class is None:
-            args.form_parser_class = _form.RobustFormParser
+            args.form_parser_class = RobustFormParser
         FormsFactory.__init__(self, **args.dictionary)
 
     def set_response(self, response, encoding):

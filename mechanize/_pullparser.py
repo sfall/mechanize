@@ -34,7 +34,7 @@ under the terms of the BSD or ZPL 2.1 licenses.
 """
 
 import re, html.entities
-from . import _sgmllib_copy as sgmllib
+from ._sgmllib_copy import SGMLParser
 import html.parser
 from xml.sax import saxutils
 
@@ -373,9 +373,9 @@ class PullParser(_AbstractParser, html.parser.HTMLParser):
         # HTMLParser.HTMLParser's entitydefs.
         return self.unescape_attr(name)
 
-class TolerantPullParser(_AbstractParser, sgmllib.SGMLParser):
+class TolerantPullParser(_AbstractParser, SGMLParser):
     def __init__(self, *args, **kwds):
-        sgmllib.SGMLParser.__init__(self)
+        SGMLParser.__init__(self)
         _AbstractParser.__init__(self, *args, **kwds)
     def unknown_starttag(self, tag, attrs):
         attrs = self.unescape_attrs(attrs)

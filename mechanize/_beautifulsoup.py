@@ -49,7 +49,6 @@ __license__ = "PSF"
 from ._sgmllib_copy import SGMLParser, SGMLParseError
 import types
 import re
-from . import _sgmllib_copy as sgmllib
 import collections
 
 class NullType(object):

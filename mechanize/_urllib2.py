@@ -36,9 +36,9 @@ from ._http import \
      HTTPRobotRulesProcessor, \
      RobotExclusionError
 import http.client
-if hasattr(httplib, 'HTTPS'):
+if hasattr(http.client, 'HTTPS'):
     from ._urllib2_fork import HTTPSHandler
-del httplib
+del http.client
 from ._opener import OpenerDirector, \
      SeekableResponseOpener, \
      build_opener, install_opener, urlopen

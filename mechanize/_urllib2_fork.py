@@ -83,9 +83,9 @@ from urllib.request import (unwrap, unquote, splittype, addinfourl, splitport, s
                             splitvalue, url2pathname, getproxies)
 from urllib.error import HTTPError, URLError
 
-from . import _request
-from . import _rfc3986
-from . import _sockettimeout
+from ._request import Request as ex_Request
+from ._rfc3986 import urlunsplit, clean_url, urlsplit, urljoin
+from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
 
 from ._clientcookie import CookieJar
 from ._response import closeable_response
@@ -97,7 +97,7 @@ __version__ = sys.version[:3]
 _opener = None
 
 
-def urlopen(url, data=None, timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+def urlopen(url, data=None, timeout=_GLOBAL_DEFAULT_TIMEOUT):
     global _opener
     if _opener is None:
         _opener = build_opener()
@@ -199,12 +199,12 @@ class Request:
         return self.host
 
     def get_selector(self):
-        scheme, authority, path, query, fragment = _rfc3986.urlsplit(
+        scheme, authority, path, query, fragment = urlsplit(
             self.__r_host)
         if path == "":
             path = "/"  # RFC 2616, section 3.2.2
         fragment = None  # RFC 3986, section 3.5
-        return _rfc3986.urlunsplit([scheme, authority, path, query, fragment])
+        return urlunsplit([scheme, authority, path, query, fragment])
 
     def set_proxy(self, host, _type):
         orig_host = self.get_host()
@@ -517,7 +517,7 @@ class HTTPRedirectHandler(BaseHandler):
             # essentially all clients do redirect in this case, so we do
             # the same.
             # TODO: really refresh redirections should be visiting; tricky to fix
-            new = _request.Request(
+            new = ex_Request(
                 newurl,
                 headers=req.headers,
                 origin_req_host=req.get_origin_req_host(),
@@ -538,8 +538,8 @@ class HTTPRedirectHandler(BaseHandler):
             newurl = headers.getheaders('uri')[0]
         else:
             return
-        newurl = _rfc3986.clean_url(newurl, "latin-1")
-        newurl = _rfc3986.urljoin(req.get_full_url(), newurl)
+        newurl = clean_url(newurl, "latin-1")
+        newurl = urljoin(req.get_full_url(), newurl)
 
         # XXX Probably want to forget about the state of the current
         # request, although that might interact poorly with other

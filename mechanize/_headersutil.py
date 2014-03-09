@@ -10,16 +10,13 @@ COPYING.txt included with the distribution).
 """
 
 import os, re
-from types import StringType
-from types import UnicodeType
-STRING_TYPES = StringType, UnicodeType
 
 from ._util import http2time
-from . import _rfc3986
+from ._rfc3986 import urlsplit
 
 
 def is_html_file_extension(url, allow_xhtml):
-    ext = os.path.splitext(_rfc3986.urlsplit(url)[2])[1]
+    ext = os.path.splitext(urlsplit(url)[2])[1]
     html_exts = [".htm", ".html"]
     if allow_xhtml:
         html_exts += [".xhtml"]
@@ -103,7 +100,7 @@ def split_header_words(header_values):
     [[('Basic', None), ('realm', '"foobar"')]]
 
     """
-    assert type(header_values) not in STRING_TYPES
+    assert type(header_values) is not type(str)
     result = []
     for text in header_values:
         orig_text = text
