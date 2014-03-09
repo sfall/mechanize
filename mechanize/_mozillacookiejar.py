@@ -114,8 +114,8 @@ class MozillaCookieJar(FileCookieJar):
                     continue
                 self.set_cookie(c)
 
-        except:
-            reraise_unmasked_exceptions((IOError, LoadError))
+        except Exception as e:
+            reraise_unmasked_exceptions(e, [IOError, LoadError])
             raise LoadError("invalid Netscape format file %s: %s" %
                             (filename, line))
 

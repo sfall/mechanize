@@ -179,7 +179,7 @@ class LWPCookieJar(FileCookieJar):
                     if not ignore_expires and c.is_expired(now):
                         continue
                     self.set_cookie(c)
-        except:
-            reraise_unmasked_exceptions((IOError,))
+        except Exception as e:
+            reraise_unmasked_exceptions(e, [IOError])
             raise LoadError("invalid Set-Cookie3 format file %s" % filename)
 

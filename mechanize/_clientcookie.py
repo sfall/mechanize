@@ -51,17 +51,17 @@ from ._rfc3986 import urlsplit
 debug = logging.getLogger("mechanize.cookies").debug
 
 
-def reraise_unmasked_exceptions(unmasked=()):
+def reraise_unmasked_exceptions(exc, unmasked=None):
     # There are a few catch-all except: statements in this module, for
     # catching input that's bad in unexpected ways.
     # This function re-raises some exceptions we don't want to trap.
     import mechanize, warnings
     if not mechanize.USE_BARE_EXCEPT:
-        raise
-    unmasked = unmasked + (KeyboardInterrupt, SystemExit, MemoryError)
+        raise exc
+    unmasked = unmasked + [KeyboardInterrupt, SystemExit, MemoryError]
     etype = sys.exc_info()[0]
     if issubclass(etype, unmasked):
-        raise
+        raise exc
     # swallowed an exception
     import traceback, io
     f = io.StringIO()
@@ -1097,7 +1097,10 @@ class CookieJar:
         self._policy._now = self._now = int(time.time())
         cookies = self._cookies_for_request(request)
         # add cookies in order of most specific (i.e. longest) path first
-        def decreasing_size(a, b): return cmp(len(b.path), len(a.path))
+        def decreasing_size(a, b):
+            ap = a.path
+            bp = b.path
+            return (bp > ap) - (ap < bp)
         cookies.sort(decreasing_size)
         return cookies
 
@@ -1439,8 +1442,8 @@ class CookieJar:
                 # RFC 2109 and Netscape cookies
                 ns_cookies = self._cookies_from_attrs_set(
                     parse_ns_headers(ns_hdrs), request)
-            except:
-                reraise_unmasked_exceptions()
+            except Exception as e:
+                reraise_unmasked_exceptions((e,))
                 ns_cookies = []
             self._process_rfc2109_cookies(ns_cookies)
 
