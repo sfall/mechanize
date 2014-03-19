@@ -83,8 +83,7 @@ from urllib.request import (unwrap, unquote, splittype, addinfourl, splitport, s
                             splitvalue, url2pathname, getproxies)
 from urllib.error import HTTPError, URLError
 
-from ._request import Request as ex_Request
-from ._rfc3986 import urlunsplit, clean_url, urlsplit, urljoin
+from ._rfc3986 import urlunsplit, clean_url, urlsplit, urljoin, is_clean_uri
 from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
 
 from ._clientcookie import CookieJar
@@ -129,7 +128,7 @@ def request_host(request):
     return host.lower()
 
 
-class Request:
+class BaseRequest:
     def __init__(self, url, data=None, headers=None,
                  origin_req_host=None, unverifiable=False):
         # unwrap('<URL:type://host/path>') --> 'type://host/path'
@@ -248,6 +247,31 @@ class Request:
         hdrs = self.unredirected_hdrs.copy()
         hdrs.update(self.headers)
         return list(hdrs.items())
+
+warn = logging.getLogger("mechanize").warning
+
+
+class Request(BaseRequest):
+    def __init__(self, url, data=None, headers={},
+                 origin_req_host=None, unverifiable=False, visit=None,
+                 timeout=_GLOBAL_DEFAULT_TIMEOUT):
+        # In mechanize 0.2, the interpretation of a unicode url argument will
+        # change: A unicode url argument will be interpreted as an IRI, and a
+        # bytestring as a URI. For now, we accept unicode or bytestring.  We
+        # don't insist that the value is always a URI (specifically, must only
+        # contain characters which are legal), because that might break working
+        # code (who knows what bytes some servers want to see, especially with
+        # browser plugins for internationalised URIs).
+        if not is_clean_uri(url):
+            warn("url argument is not a URI "
+                 "(contains illegal characters) %r" % url)
+        BaseRequest.__init__(self, url, data, headers)
+        self.selector = None
+        self.visit = visit
+        self.timeout = timeout
+
+    def __str__(self):
+        return "<Request for %s>" % self.get_full_url()
 
 
 class OpenerDirector:
@@ -517,7 +541,7 @@ class HTTPRedirectHandler(BaseHandler):
             # essentially all clients do redirect in this case, so we do
             # the same.
             # TODO: really refresh redirections should be visiting; tricky to fix
-            new = ex_Request(
+            new = Request(
                 newurl,
                 headers=req.headers,
                 origin_req_host=req.get_origin_req_host(),

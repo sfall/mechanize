@@ -18,7 +18,7 @@ from ._sgmllib_copy import SGMLParseError
 from ._beautifulsoup import BeautifulSoup, Tag, Null
 from ._form import RobustFormParser, FormParser, ParseResponseEx, ParseError as ex_ParseError
 from ._headersutil import split_header_words, is_html as _is_html
-from ._request import Request
+from ._urllib2_fork import Request
 from ._rfc3986 import urljoin, clean_url, urlunsplit, urlsplit
 
 DEFAULT_ENCODING = "latin-1"

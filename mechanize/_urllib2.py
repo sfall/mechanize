@@ -28,6 +28,7 @@ from ._urllib2_fork import \
      ProxyBasicAuthHandler, \
      ProxyDigestAuthHandler, \
      ProxyHandler, \
+     Request, \
      UnknownHandler
 from ._http import \
      HTTPEquivProcessor, \
@@ -38,5 +39,3 @@ from ._http import \
 from ._opener import OpenerDirector, \
      SeekableResponseOpener, \
      build_opener, install_opener, urlopen
-from ._request import \
-     Request

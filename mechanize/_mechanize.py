@@ -13,7 +13,7 @@ import copy, re, os, urllib.request, urllib.parse, urllib.error, urllib.request,
 
 from ._html import DefaultFactory
 from ._response import upgrade_response
-from ._request import Request as ex_Request
+from ._urllib2_fork import Request
 from ._rfc3986 import urlunsplit, urljoin, urlsplit
 from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
 from ._urllib2_fork import BaseHandler
@@ -125,7 +125,7 @@ class Browser(UserAgentBase):
         self._history = history
 
         if request_class is None:
-            request_class = ex_Request
+            request_class = Request
 
         if factory is None:
             factory = DefaultFactory()
@@ -314,7 +314,7 @@ class Browser(UserAgentBase):
         current response.
         """
         if request is None:
-            request = ex_Request(response.geturl())
+            request = Request(response.geturl())
         self._visit_request(request, True)
         self._set_response(response, False)
 

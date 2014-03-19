@@ -19,7 +19,7 @@ except NameError:
     import sets
     set = sets.Set
 
-from ._request import Request
+from ._urllib2_fork import Request
 from ._response import seek_wrapped_response
 from ._rfc3986 import urlsplit
 from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT

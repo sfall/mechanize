@@ -71,7 +71,7 @@ import urllib.parse
 import warnings
 
 from ._beautifulsoup import BeautifulSoup, ICantBelieveItsBeautifulSoup
-from ._request import Request
+from ._urllib2_fork import Request
 
 from ._sgmllib_copy import SGMLParseError, SGMLParser
 import collections

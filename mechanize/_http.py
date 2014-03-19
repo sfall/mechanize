@@ -25,7 +25,7 @@ from ._urllib2_fork import HTTPError, BaseHandler
 
 from ._headersutil import is_html
 from ._html import unescape, unescape_charref
-from ._request import Request
+from ._urllib2_fork import Request
 from ._response import response_seek_wrapper
 from ._rfc3986 import clean_url
 from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
