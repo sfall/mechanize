@@ -6,8 +6,7 @@ option is not passed to the test runner.
 TODO: get the source code for these tests and run them locally if feasible
 """
 
-import os
-import posixpath
+import os, os.path
 
 import mechanize
 from mechanize._util import read_file, write_file
@@ -36,7 +35,7 @@ class OperaCookieTests(TestCase):
         browser.open(test_page)
         # TODO: These exclusions are all failing.  Uncomment the subset of
         # these tests that aren't failing due to lack of JS support or similar.
-        exclusions = set([
+        exclusions = {
                 "http://testsuites.opera.com/cookies/002.php",
                 "http://testsuites.opera.com/cookies/004/004.php",
                 # uses JS
@@ -78,8 +77,8 @@ class OperaCookieTests(TestCase):
                 "http://testsuites.opera.com/cookies/313.php",
                 # the test_page URI comments "Needs UI" re these two
                 "http://testsuites.opera.com/cookies/501.php",
-                "http://testsuites.opera.com/cookies/502.php",
-                ])
+                "http://testsuites.opera.com/cookies/502.php"
+                }
         uris = []
         for link in browser.links():
             uri = link.absolute_url
@@ -101,7 +100,7 @@ class OperaCookieTests(TestCase):
             self.assertIn("<p>PASS</p>", browser.response().get_data())
         scheme, authority, path, query, fragment = \
             mechanize._rfc3986.urlsplit(uri)
-        name = posixpath.splitext(posixpath.basename(path))[0]
+        name = os.path.splitext(os.path.basename(path))[0]
         method_name = "test_%s" % name
         test.__name__ = method_name
         return test

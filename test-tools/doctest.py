@@ -101,6 +101,8 @@ import unittest, difflib, pdb, tempfile
 import warnings
 from io import StringIO
 
+cmp = lambda a, b: (a < b) - (a > b)
+
 # Don't whine about the deprecated is_private function in this
 # module's tests.
 warnings.filterwarnings("ignore", "is_private", DeprecationWarning,

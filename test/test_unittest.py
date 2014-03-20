@@ -6,7 +6,6 @@ Still need testing:
     TestCase.{assert,fail}* methods (some are tested implicitly)
 """
 
-from io import StringIO
 import builtins
 import os
 import re
@@ -17,6 +16,8 @@ import types
 from copy import deepcopy
 from io import StringIO
 import pickle
+
+cmp = lambda a, b: (a < b) - (a > b)
 
 ### Support code
 ################################################################
