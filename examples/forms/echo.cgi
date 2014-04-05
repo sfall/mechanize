@@ -1,23 +1,23 @@
 #!/usr/bin/python
 # -*-python-*-
 
-print "Content-Type: text/html\n"
-import sys, os, string, cgi
+from html import escape
 
-from types import ListType
+HTML = """Content-Type: text/html\n
+<html><head><title>Form submission parameters</title></head>
+"""
 
-print "<html><head><title>Form submission parameters</title></head>"
-form = cgi.FieldStorage()
-print "<p>Received parameters:</p>"
-print "<pre>"
-for k in form.keys():
-    v = form[k]
-    if isinstance(v, ListType):
+form = {k: self.get_arguments(k) for k in self.request.arguments if self.get_arguments(k)}
+HTML += "<p>Received parameters:</p>\n"
+HTML += "<pre>\n"
+for k in form:
+    v = form.get(k)
+    if isinstance(v, list):
         vs = []
         for item in v:
             vs.append(item.value)
-        text = string.join(vs, ", ")
+        text = ', '.join(vs)
     else:
-        text = v.value
-    print "%s: %s" % (cgi.escape(k), cgi.escape(text))
-print "</pre></html>"
+        text = v
+    HTML += "%s: %s\n" % (escape(k), text)
+print("</pre></html>")

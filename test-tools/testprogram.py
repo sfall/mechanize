@@ -35,7 +35,9 @@ import subprocess
 import sys
 import time
 import unittest
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.request
+import urllib.parse
 
 import mechanize
 import mechanize._rfc3986
@@ -43,12 +45,10 @@ import mechanize._testcase as _testcase
 
 
 class ServerStartupError(Exception):
-
     pass
 
 
 class ServerProcess:
-
     def __init__(self, filename, name=None):
         if filename is None:
             raise ValueError('filename arg must be a string')
@@ -69,7 +69,7 @@ class ServerProcess:
         return []
 
     def _start(self):
-        self._args = [sys.executable, self._filename]+self._get_args()
+        self._args = [sys.executable, self._filename] + self._get_args()
         self.report_hook("starting (%s)" % (self._args,))
         self._process = subprocess.Popen(self._args)
         self.report_hook("waiting for startup")
@@ -90,6 +90,7 @@ class ServerProcess:
                 sock.connect(('127.0.0.1', self.port))
             finally:
                 sock.close()
+
         backoff(connect, (socket.error,))
 
     def stop(self):
@@ -116,7 +117,7 @@ def backoff(func, errors,
         else:
             break
     else:
-        raise
+        raise Exception
 
 
 def kill_windows(handle, report_hook):
@@ -131,13 +132,16 @@ def kill_windows(handle, report_hook):
 
 def kill_posix(pid, report_hook):
     import signal
+
     os.kill(pid, signal.SIGTERM)
 
     timeout = 10.
     starttime = time.time()
     report_hook("waiting for exit")
+
     def do_nothing(*args):
         pass
+
     old_handler = signal.signal(signal.SIGCHLD, do_nothing)
     try:
         while time.time() < starttime + timeout - 0.01:
@@ -158,12 +162,11 @@ def kill_posix(pid, report_hook):
         signal.signal(signal.SIGCHLD, old_handler)
 
 
-class TwistedServerProcess(ServerProcess):
-
+class TornadoServerProcess(ServerProcess):
     def __init__(self, uri, name, log=False):
         this_dir = os.path.dirname(__file__)
-        path = os.path.join(this_dir, "twisted-localserver.py")
-        ServerProcess.__init__(self, path, name)
+        path = os.path.join(this_dir, "tornado-localserver.py")
+        super().__init__(self, path, name)
         self.uri = uri
         authority = mechanize._rfc3986.urlsplit(uri)[1]
         host, port = urllib.parse.splitport(authority)
@@ -184,12 +187,11 @@ class TwistedServerProcess(ServerProcess):
         return args
 
 
-class TwistedFtpServerProcess(ServerProcess):
-
+class FtpServerProcess(ServerProcess):
     def __init__(self, name, port=2121, log=False):
         this_dir = os.path.dirname(__file__)
-        path = os.path.join(this_dir, "twisted-ftpserver.py")
-        ServerProcess.__init__(self, path, name)
+        path = os.path.join(this_dir, "pyftpdlib-ftpserver.py")
+        super().__init__(self, path, name)
         self._temp_maker = mechanize._testcase.TempDirMaker()
         self.root_path = self._temp_maker.make_temp_dir()
         self.port = port
@@ -210,7 +212,6 @@ class TwistedFtpServerProcess(ServerProcess):
 
 
 class ServerCM(object):
-
     def __init__(self, make_server):
         self._server = None
         self._make_server = make_server
@@ -227,13 +228,11 @@ class ServerCM(object):
 
 
 class NullServer(object):
-
     def __init__(self, uri, name=None):
         self.uri = uri
 
 
 class TrivialCM(object):
-
     def __init__(self, obj):
         self._obj = obj
 
@@ -257,7 +256,6 @@ def add_attributes_to_test_cases(suite, attributes):
 
 
 class FixtureCacheSuite(unittest.TestSuite):
-
     def __init__(self, fixture_factory, *args, **kwds):
         unittest.TestSuite.__init__(self, *args, **kwds)
         self._fixture_factory = fixture_factory
@@ -284,41 +282,38 @@ def make_http_server_cm(uri, log):
                  ".*test/__init__.pyc?, but .* is being added to "
                  "sys.path"),
         category=UserWarning,
-        module="zope")
+        module="tornado")
     try:
-        import twisted.web2
-        import zope.interface
+        import tornado
     except ImportError:
-        warnings.warn("Skipping functional tests: Failed to import "
-                      "twisted.web2 and/or zope.interface")
+        warnings.warn("Skipping functional tests: Failed to import tornado")
         def skip():
             raise unittest.SkipTest
         cm = ServerCM(skip)
     else:
-        cm = ServerCM(lambda: TwistedServerProcess(
-                uri, "local twisted server", log))
+        cm = ServerCM(lambda: TornadoServerProcess(
+            uri, "local tornado server", log))
     return cm
 
 
 def make_ftp_server_cm(log):
     import warnings
+
     try:
-        import twisted.protocols.ftp
-        import zope.interface
+        import pyftpdlib
     except ImportError:
         warnings.warn("Skipping functional tests: Failed to import "
-                      "twisted.protocols.ftp and/or zope.interface")
+                      "pyftpdlib")
         def skip():
             raise unittest.SkipTest
         cm = ServerCM(skip)
     else:
-        cm = ServerCM(lambda: TwistedFtpServerProcess(
-                "local twisted server", 2121, log))
+        cm = ServerCM(lambda: FtpServerProcess(
+            "local pyftpdlib server", 2121, log))
     return cm
 
 
 class TestProgram(unittest.TestProgram):
-
     def __init__(self, default_discovery_args=None,
                  *args, **kwds):
         self._default_discovery_args = default_discovery_args
@@ -344,7 +339,7 @@ class TestProgram(unittest.TestProgram):
         # mechanize additions
         # TODO: test_urllib2_localnet ignores --uri and --no-local-server
         note = ("Note that there are two local servers in use, and this "
-                "option only affects the twisted server, not the server used "
+                "option only affects the tornado server, not the server used "
                 "by test_urllib2_localnet (which originates from standard "
                 "library).")
         parser.add_option(
@@ -362,11 +357,11 @@ class TestProgram(unittest.TestProgram):
                           help=('Turn on logging for logger "mechanize" at '
                                 'level logging.DEBUG'))
         parser.add_option("--log-server", action="store_true",
-                          help=("Turn on logging for twisted.web2 local HTTP "
+                          help=("Turn on logging for tornado local HTTP "
                                 " server"))
         parser.add_option("--skip-doctests", action="store_true",
                           help="Don't discover doctests.")
-        allowed_tags = set(["internet"])
+        allowed_tags = {"internet"}
         parser.add_option("--tag", action="append", dest="tags", metavar="TAG",
                           help=("Discover tests tagged with TAG.  Tagged "
                                 "tests are not discovered by default.  Pass "
@@ -462,6 +457,7 @@ class TestProgram(unittest.TestProgram):
                                fixture_factory=fixture_factory)
         if options.meld:
             import mechanize._testcase
+
             mechanize._testcase.GoldenTestCase.run_meld = True
         self.test = toplevel_test(self.test, test_attributes)
 

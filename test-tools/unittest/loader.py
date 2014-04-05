@@ -11,7 +11,7 @@ from fnmatch import fnmatch
 
 from unittest import case, suite
 
-cmp = lambda a, b: (a < b) - (a > b)
+cmp = lambda _, a, b: (a < b) - (a > b)
 
 # Python 2.4 compatibility
 if os.name == "posix":

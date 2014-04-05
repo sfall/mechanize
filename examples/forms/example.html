@@ -1,3 +1,8 @@
+<!--
+ TODO(Samba): I'm gonna have to determine whether or not this
+ is intentionally bad HTML. It could be old standards,
+ or it could test BeautifulSoup.
+ -->
 <html>
 <head>
 <title>Example</title>
@@ -7,7 +12,7 @@
 <!--Note that echo.cgi doesn't show file upload data-->
 <form action="/cgi-bin/echo.cgi"
  method="POST" enctype="multipart/form-data">
- <input type="textarea" name="blah"></input>
+ <input type="textarea" name="blah"></input>z
 
  <input type="text" name="comments"></input>
 
@@ -47,6 +52,10 @@
  </select>
 
  <input type="file"></input>
+ <!--
+  (Samba): My addition
+  -->
+ <input type="submit">
 </form>
 
 
