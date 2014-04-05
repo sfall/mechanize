@@ -94,9 +94,9 @@ class UnescapeTests(TestCase):
         from mechanize._html import unescape_charref
         mdash_utf8 = "\u2014".encode("utf-8")
         for ref, codepoint, utf8, latin1 in [
-            ("38", 38, "&".encode("utf-8"), "&"),
-            ("x2014", 0x2014, mdash_utf8, "&#x2014;"),
-            ("8212", 8212, mdash_utf8, "&#8212;"),
+            ("38", 38, "&".encode("utf-8"), b"&"),
+            ("x2014", 0x2014, mdash_utf8, b"&#x2014;"),
+            ("8212", 8212, mdash_utf8, b"&#8212;"),
             ]:
             self.assertEqual(unescape_charref(ref, None), chr(codepoint))
             self.assertEqual(unescape_charref(ref, 'latin-1'), latin1)

@@ -8,7 +8,6 @@
 
 from io import StringIO
 import os
-import string
 import unittest
 
 import mechanize
@@ -25,42 +24,21 @@ from mechanize._util import get1
 # HTMLForm.enctype
 # XHTML
 
-try: True
-except NameError:
-    True = 1
-    False = 0
-
-try: bool
-except NameError:
-    def bool(expr):
-        if expr: return True
-        else: return False
-
-try:
-    import warnings
-except ImportError:
-    warnings_imported = False
-    def hide_deprecations():
+import warnings
+warnings_imported = True
+def hide_deprecations():
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+def reset_deprecations():
+    warnings.filterwarnings('default', category=DeprecationWarning)
+    #warnings.resetwarnings()  # XXX probably safer
+def raise_deprecations():
+    try:
+        registry = _form.__warningregistry__
+    except AttributeError:
         pass
-    def reset_deprecations():
-        pass
-    def raise_deprecations():
-        pass
-else:
-    warnings_imported = True
-    def hide_deprecations():
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-    def reset_deprecations():
-        warnings.filterwarnings('default', category=DeprecationWarning)
-        #warnings.resetwarnings()  # XXX probably safer
-    def raise_deprecations():
-        try:
-            registry = _form.__warningregistry__
-        except AttributeError:
-            pass
-        else:
-            registry.clear()
-        warnings.filterwarnings('error', category=DeprecationWarning)
+    else:
+        registry.clear()
+    warnings.filterwarnings('error', category=DeprecationWarning)
 
 class DummyForm:
     def __init__(self):
@@ -147,11 +125,11 @@ class UnescapeTests(unittest.TestCase):
         forms = mechanize.ParseFile(file, "http://localhost/",
                                     backwards_compat=False, encoding="utf-8")
         form = forms[0]
-        test_string = "&amp;"+("\u2014".encode('utf8')*3)
-        self.assertEqual(form.action, "http://localhost/"+test_string)
+        test_string = ("&amp;"+("\u2014"*3)).encode('utf8')
+        self.assertEqual(form.action, b"http://localhost/"+test_string)
         control = form.find_control(type="textarea", nr=0)
-        self.assertEqual(control.value, "val"+test_string)
-        self.assertEqual(control.name, "name"+test_string)
+        self.assertEqual(control.value, b"val"+test_string)
+        self.assertEqual(control.name, b"name"+test_string)
 
     def test_unescape_parsing_select(self):
         f = StringIO("""\
@@ -164,11 +142,11 @@ class UnescapeTests(unittest.TestCase):
 """)  #"
         forms = mechanize.ParseFileEx(f, "http://localhost/", encoding="utf-8")
         form = forms[1]
-        test_string = "&amp;"+("\u2014".encode('utf8')*3)
+        test_string = ("&amp;"+("\u2014"*3)).encode('utf8')
         control = form.find_control(nr=0)
         for ii in range(len(control.items)):
             item = control.items[ii]
-            self.assertEqual(item.name, str(ii+1)+test_string)
+            self.assertEqual(item.name, bytes(ii+1)+test_string)
             # XXX label
 
     def test_unescape_parsing_data(self):
@@ -257,7 +235,7 @@ class ParseTests(unittest.TestCase):
     def test_failing_parse(self):
         # XXX couldn't provoke an error from BeautifulSoup (!), so this has not
         # been tested with RobustFormParser
-        import sgmllib
+        import mechanize._sgmllib_copy as sgmllib
         # Python 2.0 sgmllib raises RuntimeError rather than SGMLParseError,
         # but seems never to even raise that except as an assertion, from
         # reading the code...
@@ -3373,7 +3351,7 @@ class CaseInsensitiveDict:
     def __init__(self, items):
         self._dict = {}
         for key, val in items:
-            self._dict[string.lower(key)] = val
+            self._dict[key.lower()] = val
 
     def __getitem__(self, key): return self._dict[key]
 
@@ -3384,7 +3362,7 @@ class UploadTests(_testcase.TestCase):
 
     def test_choose_boundary(self):
         bndy = _form.choose_boundary()
-        ii = string.find(bndy, '.')
+        ii = bndy.find('.')
         self.assert_(ii < 0)
 
     def make_form(self):
@@ -3494,7 +3472,7 @@ class UploadTests(_testcase.TestCase):
 </form></html>"""), ".", backwards_compat=False)
         form = forms[0]
         data = form.click().get_data()
-        lines = string.split(data, "\r\n")
+        lines = data.split("\r\n")
         self.assertTrue(lines[0].startswith("--"))
         self.assertEqual(lines[1],
                          'Content-Disposition: form-data; name="submit"')

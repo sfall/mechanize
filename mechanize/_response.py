@@ -16,7 +16,7 @@ included with the distribution).
 
 """
 
-import copy, email.mime.message, urllib.request, urllib.error, urllib.parse
+import copy, email, urllib.request, urllib.error, urllib.parse
 from io import StringIO
 
 
@@ -423,7 +423,7 @@ def make_headers(headers):
     hdr_text = []
     for name_value in headers:
         hdr_text.append("%s: %s" % name_value)
-    return email.mime.message.Message(StringIO("\n".join(hdr_text)))
+    return email.message_from_string("\n".join(hdr_text))
 
 
 # Rest of this module is especially horrible, but needed, at least until fork

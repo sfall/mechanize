@@ -13,7 +13,7 @@ for token in p.tags("a"):
     if token.type == "endtag": continue
     url = dict(token.attrs).get("href", "-")
     text = p.get_compressed_text(endat=("endtag", "a"))
-    print "%s\t%s" % (url, text)
+    print("%s\t%s" % (url, text))
 
 This program extracts the <TITLE> from the document:
 
@@ -22,7 +22,7 @@ f = file(sys.argv[1])
 p = pullparser.PullParser(f)
 if p.get_tag("title"):
     title = p.get_compressed_text()
-    print "Title: %s" % title
+    print("Title: %s" % title)
 
 
 Copyright 2003-2006 John J. Lee <jjl@pobox.com>
@@ -90,30 +90,30 @@ class Token:
 
     def __str__(self):
         """
-        >>> print Token("starttag", "br")
+        >>> print(Token("starttag", "br"))
         <br>
-        >>> print Token("starttag", "a",
-        ...     [("href", "http://www.python.org/"), ("alt", '"foo"')])
+        >>> print(Token("starttag", "a",
+        ...     [("href", "http://www.python.org/"), ("alt", '"foo"')]))
         <a href="http://www.python.org/" alt='"foo"'>
-        >>> print Token("startendtag", "br")
+        >>> print(Token("startendtag", "br"))
         <br />
-        >>> print Token("startendtag", "br", [("spam", "eggs")])
+        >>> print(Token("startendtag", "br", [("spam", "eggs")]))
         <br spam="eggs" />
-        >>> print Token("endtag", "p")
+        >>> print(Token("endtag", "p"))
         </p>
-        >>> print Token("charref", "38")
+        >>> print(Token("charref", "38"))
         &#38;
-        >>> print Token("entityref", "amp")
+        >>> print(Token("entityref", "amp"))
         &amp;
-        >>> print Token("data", "foo\\nbar")
+        >>> print(Token("data", "foo\\nbar"))
         foo
         bar
-        >>> print Token("comment", "Life is a bowl\\nof cherries.")
+        >>> print(Token("comment", "Life is a bowl\\nof cherries."))
         <!--Life is a bowl
         of cherries.-->
-        >>> print Token("decl", "decl")
+        >>> print(Token("decl", "decl"))
         <!decl>
-        >>> print Token("pi", "pi")
+        >>> print(Token("pi", "pi"))
         <?pi>
         """
         if self.attrs is not None:
@@ -320,7 +320,7 @@ class _AbstractParser:
                 if endat is None or endat == (tok.type, tag_name):
                     self.unget_token(tok)
                     break
-        return "".join(text)
+        return b"".join(text)
 
     def get_compressed_text(self, *args, **kwds):
         """

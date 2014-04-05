@@ -10,8 +10,8 @@ For backwards compatibility, mechanize.ParseError derives from
 exception classes that mechanize used to raise, prior to version
 0.1.6.
 
->>> import sgmllib
->>> import HTMLParser
+>>> import mechanize._sgmllib_copy as sgmllib
+>>> import html.parser as HTMLParser
 >>> issubclass(mechanize.ParseError, sgmllib.SGMLParseError)
 True
 >>> issubclass(mechanize.ParseError, HTMLParser.HTMLParseError)
@@ -206,9 +206,9 @@ But for backwards-compatibility, empty non-<a> links have None link text
 ... <p><frame src="http://example.com/"></frame>
 ... </body></html>
 ... """)
->>> print get_first_link_text_bs(html)
+>>> print(get_first_link_text_bs(html))
 None
->>> print get_first_link_text_sgmllib(html)
+>>> print(get_first_link_text_sgmllib(html))
 None
 
 

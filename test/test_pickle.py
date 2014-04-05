@@ -1,4 +1,3 @@
-import pickle
 import io as StringIO
 import pickle
 
@@ -12,7 +11,6 @@ def pickle_and_unpickle(obj, implementation):
 
 
 def test_pickling(obj, check=lambda unpickled: None):
-    check(pickle_and_unpickle(obj, cPickle))
     check(pickle_and_unpickle(obj, pickle))
 
 

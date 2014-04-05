@@ -135,7 +135,7 @@ def test_request_headers_methods():
 
     >>> r.has_header("Not-there")
     False
-    >>> print r.get_header("Not-there")
+    >>> print(r.get_header("Not-there"))
     None
     >>> r.get_header("Not-there", "default")
     'default'
@@ -399,13 +399,13 @@ class MockHTTPHandler(mechanize.BaseHandler):
         self._count = 0
         self.requests = []
     def http_open(self, req):
-        import mimetools, copy
+        import email, copy
         from io import StringIO
         self.requests.append(copy.deepcopy(req))
         if self._count == 0:
             self._count = self._count + 1
             name = "Not important"
-            msg = mimetools.Message(StringIO(self.headers))
+            msg = email.message_from_string(self.headers)
             return self.parent.error(
                 "http", req, test_response(), self.code, name, msg)
         else:
@@ -759,7 +759,7 @@ class HandlerTests(mechanize._testcase.TestCase):
             self.assertEqual(int(headers["Content-length"]), len(data))
 
     def test_file(self):
-        import rfc822, socket
+        import email.utils, socket
         h = mechanize.FileHandler()
         o = h.parent = MockOpener()
 
@@ -785,7 +785,7 @@ class HandlerTests(mechanize._testcase.TestCase):
             finally:
                 r.close()
             stats = os.stat(temp_file)
-            modified = rfc822.formatdate(stats.st_mtime)
+            modified = email.utils.formatdate(stats.st_mtime)
             self.assertEqual(data, towrite)
             self.assertEqual(headers["Content-type"], "text/plain")
             self.assertEqual(headers["Content-length"], "13")
@@ -1117,12 +1117,12 @@ class HandlerTests(mechanize._testcase.TestCase):
             def __init__(self):
                 self.requests = []
             def http_open(self, req):
-                import mimetools, http.client, copy
+                import email, http.client, copy
                 from io import StringIO
                 self.requests.append(copy.deepcopy(req))
                 if req.get_full_url() == "http://example.com/robots.txt":
                     hdr = "Location: http://example.com/en/robots.txt\r\n\r\n"
-                    msg = mimetools.Message(StringIO(hdr))
+                    msg = email.message_from_string(hdr)
                     return self.parent.error(
                         "http", req, test_response(), 302, "Blah", msg)
                 else:
@@ -1189,14 +1189,14 @@ class HandlerTests(mechanize._testcase.TestCase):
             # in the past, this failed with UnboundLocalError
             ('0; "http://example.com/foo/"', False),
             ]:
-            o = h.parent = MockOpener()
+            h.parent = MockOpener()
             req = Request("http://example.com/")
             headers = http_message({"refresh": val})
             r = MockResponse(200, "OK", headers, "", "http://example.com/")
             newr = h.http_response(req, r)
             if valid:
-                self.assertEqual(o.proto, "http")
-                self.assertEqual(o.args, (req, r, "refresh", "OK", headers))
+                self.assertEqual(h.parent.proto, "http")
+                self.assertEqual(h.parent.args, (req, r, "refresh", "OK", headers))
 
     def test_refresh_honor_time(self):
         class SleepTester:

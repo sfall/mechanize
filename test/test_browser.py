@@ -4,7 +4,7 @@
 from unittest import TestCase
 import io
 import http.client
-import mimetools
+import email
 import re
 
 from mechanize._response import test_html_response
@@ -179,8 +179,8 @@ class BrowserTests(TestCase):
                        "Content-Type: text/html; charset=KOI8-R\r\n\r\n",
                        "UTF-8"),
                       ]:
-            msg = mimetools.Message(StringIO(s))
-            r = urllib.addinfourl(StringIO(""), msg, "http://www.example.com/")
+            msg = email.message_from_string(s)
+            r = urllib.request.addinfourl(StringIO(""), msg, "http://www.example.com/")
             b.set_response(r)
             self.assertEqual(b.encoding(), ct)
 
@@ -752,8 +752,7 @@ class ResponseTests(TestCase):
             )
 
         fp = io.StringIO('<html><form name="f"><input /></form></html>')
-        headers = mimetools.Message(
-            io.StringIO("Content-type: text/html"))
+        headers = email.message_from_string("Content-type: text/html")
         response = _response.response_seek_wrapper(
             _response.closeable_response(
             fp, headers, "http://example.com/", 200, "OK"))
@@ -787,7 +786,7 @@ class HttplibTests(mechanize._testcase.TestCase):
             return
         def getresponse(self_):
             class Response(object):
-                msg = mimetools.Message(io.StringIO(""))
+                msg = email.message_from_string("")
                 status = 200
                 reason = "OK"
                 def read(self__):

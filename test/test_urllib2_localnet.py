@@ -2,7 +2,7 @@
 
 """Functional tests from the Python standard library test suite."""
 
-import mimetools
+import email
 import threading
 import urllib.parse
 import mechanize
@@ -48,7 +48,7 @@ class LoopbackHttpServerThread(threading.Thread):
 
     def __init__(self, handle_request=None):
         threading.Thread.__init__(self)
-        self._stop = False
+        self._stop_ = False
         self.ready = threading.Event()
         self._request_handler = None
         if handle_request is None:
@@ -69,13 +69,13 @@ class LoopbackHttpServerThread(threading.Thread):
         """Stops the webserver if it's currently running."""
 
         # Set the stop flag.
-        self._stop = True
+        self._stop_ = True
 
         self.join()
 
     def run(self):
         self.ready.set()
-        while not self._stop:
+        while not self._stop_:
             self.httpd.handle_request()
 
 # Authentication infrastructure
@@ -484,9 +484,9 @@ class TestUrlopen(TestCase):
 
         open_url = mechanize.urlopen("http://localhost:%s" % handler.port)
         info_obj = open_url.info()
-        self.assertTrue(isinstance(info_obj, mimetools.Message),
+        self.assertTrue(isinstance(info_obj, email.message.Message),
                      "object returned by 'info' is not an instance of "
-                     "mimetools.Message")
+                     "email.message.Message")
         self.assertEqual(info_obj.getsubtype(), "plain")
 
     def test_geturl(self):

@@ -3,7 +3,7 @@
 import io
 import errno
 import inspect
-import mimetools
+import email
 import os
 import re
 import sys
@@ -22,8 +22,8 @@ class FakeResponse:
         """
         headers: list of RFC822-style 'Key: value' strings
         """
-        f = io.StringIO("\n".join(headers))
-        self._headers = mimetools.Message(f)
+        f = "\n".join(headers)
+        self._headers = email.message_from_string(f)
         self._url = url
     def info(self): return self._headers
 

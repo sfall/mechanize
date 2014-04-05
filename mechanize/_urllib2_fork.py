@@ -70,7 +70,7 @@ def splithost(url):
     if _hostprog is None:
         import re
 
-        _hostprog = re.compile('^//([^/?]*)(.*)$')
+        _hostprog = re.compile('^//([^/?]*)(.*)$'.encode('utf8'))
 
     match = _hostprog.match(url)
     if match:
@@ -680,7 +680,7 @@ class ProxyHandler(BaseHandler):
         if proxies is None:
             proxies = getproxies()
 
-        assert hasattr(proxies, 'has_key'), "proxies must be a mapping"
+        assert hasattr(proxies, 'fromkeys'), "proxies must be a mapping"
         self.proxies = proxies
         for _type, url in list(proxies.items()):
             setattr(self, '%s_open' % _type,
