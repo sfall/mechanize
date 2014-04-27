@@ -1,11 +1,11 @@
 >>> from mechanize import Request
->>> Request("http://example.com/foo#frag").get_selector()
+>>> Request("http://example.com/foo#frag").selector
 '/foo'
 
->>> Request("http://example.com?query").get_selector()
+>>> Request("http://example.com?query").selector
 '/?query'
 
->>> Request("http://example.com").get_selector()
+>>> Request("http://example.com").selector
 '/'
 
 

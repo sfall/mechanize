@@ -7,7 +7,7 @@ import unittest
 
 import mechanize
 import mechanize._response as _response
-import mechanize._sockettimeout as _sockettimeout
+import mechanize._sockettimeout as  socket
 
 
 def killfile(filename):
@@ -140,7 +140,7 @@ class OpenerTests(unittest.TestCase):
                 self.total_size = len(self.data)
                 self._content_length = content_length
             def open(self, fullurl, data=None,
-                     timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                     timeout= socket._GLOBAL_DEFAULT_TIMEOUT):
                 self.calls.append((fullurl, data, timeout))
                 headers = [("Foo", "Bar")]
                 if self._content_length is not None:

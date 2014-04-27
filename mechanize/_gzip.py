@@ -1,7 +1,7 @@
 from io import StringIO
 
 from ._response import closeable_response
-from ._urllib2_fork import BaseHandler
+from urllib.request import BaseHandler
 
 
 # GzipConsumer was taken from Fredrik Lundh's effbot.org-0.1-20041009 library

@@ -29,7 +29,7 @@ from mechanize._urllib2_fork import AbstractHTTPHandler
 from mechanize._util import write_file
 
 import mechanize._response
-import mechanize._sockettimeout as _sockettimeout
+import mechanize._sockettimeout as  socket
 import mechanize._testcase
 import mechanize._urllib2_fork
 
@@ -258,7 +258,7 @@ def test_password_manager_default_port(self):
 class MockOpener:
     addheaders = []
     def open(self, req, data=None,
-             timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+             timeout= socket._GLOBAL_DEFAULT_TIMEOUT):
         self.req, self.data, self.timeout  = req, data, timeout
     def error(self, proto, *args):
         self.proto, self.args = proto, args
@@ -732,15 +732,15 @@ class HandlerTests(mechanize._testcase.TestCase):
         for url, host, port, type_, dirs, timeout, filename, mimetype in [
             ("ftp://localhost/foo/bar/baz.html",
              "localhost", ftplib.FTP_PORT, "I",
-             ["foo", "bar"], _sockettimeout._GLOBAL_DEFAULT_TIMEOUT,
+             ["foo", "bar"],  socket._GLOBAL_DEFAULT_TIMEOUT,
              "baz.html", "text/html"),
             ("ftp://localhost:80/foo/bar/",
              "localhost", 80, "D",
-             ["foo", "bar"], _sockettimeout._GLOBAL_DEFAULT_TIMEOUT,
+             ["foo", "bar"],  socket._GLOBAL_DEFAULT_TIMEOUT,
              "", None),
             ("ftp://localhost/baz.gif;type=a",
              "localhost", ftplib.FTP_PORT, "A",
-             [], _sockettimeout._GLOBAL_DEFAULT_TIMEOUT,
+             [],  socket._GLOBAL_DEFAULT_TIMEOUT,
              "baz.gif", None),  # TODO: really this should guess image/gif
             ]:
             req = Request(url, timeout=timeout)
@@ -842,7 +842,7 @@ class HandlerTests(mechanize._testcase.TestCase):
                 self.data = None
                 self.raise_on_endheaders = False
             def __call__(self, host,
-                         timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
+                         timeout= socket._GLOBAL_DEFAULT_TIMEOUT):
                 self.host = host
                 self.timeout = timeout
                 return self
@@ -1040,7 +1040,7 @@ class HandlerTests(mechanize._testcase.TestCase):
             "__call__",
             ("set_opener", opener),
             ("set_url", "http://example.com:80/robots.txt"),
-            ("set_timeout", _sockettimeout._GLOBAL_DEFAULT_TIMEOUT),
+            ("set_timeout",  socket._GLOBAL_DEFAULT_TIMEOUT),
             "read",
             ("can_fetch", "", url),
             ])
@@ -1081,7 +1081,7 @@ class HandlerTests(mechanize._testcase.TestCase):
             "__call__",
             ("set_opener", opener),
             ("set_url", "http://example.com/robots.txt"),
-            ("set_timeout", _sockettimeout._GLOBAL_DEFAULT_TIMEOUT),
+            ("set_timeout",  socket._GLOBAL_DEFAULT_TIMEOUT),
             "read",
             ("can_fetch", "", url),
             ])
@@ -1094,7 +1094,7 @@ class HandlerTests(mechanize._testcase.TestCase):
             "__call__",
             ("set_opener", opener),
             ("set_url", "https://example.org/robots.txt"),
-            ("set_timeout", _sockettimeout._GLOBAL_DEFAULT_TIMEOUT),
+            ("set_timeout",  socket._GLOBAL_DEFAULT_TIMEOUT),
             "read",
             ("can_fetch", "", url),
             ])
@@ -1149,7 +1149,7 @@ class HandlerTests(mechanize._testcase.TestCase):
         r = MockResponse(200, "OK", {}, "")
         newreq = h.http_request(req)
         self.assertTrue(cj.ach_req is req is newreq)
-        self.assertEquals(req.get_origin_req_host(), "example.com")
+        self.assertEquals(req.origin_req_host, "example.com")
         self.assertFalse(cj.ach_u)
         newr = h.http_response(req, r)
         self.assertTrue(cj.ec_req is req)
@@ -1370,9 +1370,9 @@ class HandlerTests(mechanize._testcase.TestCase):
         o._maybe_reindex_handlers()
 
         req = Request("http://acme.example.com/")
-        self.assertEqual(req.get_host(), "acme.example.com")
+        self.assertEqual(req.host, "acme.example.com")
         r = o.open(req)
-        self.assertEqual(req.get_host(), "proxy.example.com:3128")
+        self.assertEqual(req.host, "proxy.example.com:3128")
 
         self.assertEqual([(handlers[0], "http_open")],
                          [tup[0:2] for tup in o.calls])
@@ -1383,15 +1383,15 @@ class HandlerTests(mechanize._testcase.TestCase):
         ph = mechanize.ProxyHandler(dict(http="proxy.example.com"))
         o.add_handler(ph)
         req = Request("http://www.perl.org/")
-        self.assertEqual(req.get_host(), "www.perl.org")
+        self.assertEqual(req.host, "www.perl.org")
         r = o.open(req)
-        self.assertEqual(req.get_host(), "proxy.example.com")
+        self.assertEqual(req.host, "proxy.example.com")
         req = Request("http://www.python.org")
-        self.assertEqual(req.get_host(), "www.python.org")
+        self.assertEqual(req.host, "www.python.org")
         r = o.open(req)
         if sys.version_info >= (2, 6):
             # no_proxy environment variable not supported in python 2.5
-            self.assertEqual(req.get_host(), "www.python.org")
+            self.assertEqual(req.host, "www.python.org")
 
     def test_proxy_custom_proxy_bypass(self):
         self.monkey_patch_environ("no_proxy",
@@ -1418,9 +1418,9 @@ class HandlerTests(mechanize._testcase.TestCase):
         ]
         handlers = add_ordered_mock_handlers(o, meth_spec)
         req = Request("https://www.example.com/")
-        self.assertEqual(req.get_host(), "www.example.com")
+        self.assertEqual(req.host, "www.example.com")
         r = o.open(req)
-        self.assertEqual(req.get_host(), "proxy.example.com:3128")
+        self.assertEqual(req.host, "proxy.example.com:3128")
         self.assertEqual([(handlers[0], "https_open")],
                          [tup[0:2] for tup in o.calls])
 
@@ -1652,26 +1652,26 @@ class RequestTests(unittest.TestCase):
                          self.get.get_full_url())
 
     def test_selector(self):
-        self.assertEqual("/~jeremy/", self.get.get_selector())
+        self.assertEqual("/~jeremy/", self.get.selector)
         req = Request("http://www.python.org/")
-        self.assertEqual("/", req.get_selector())
+        self.assertEqual("/", req.selector)
 
     def test_get_type(self):
         self.assertEqual("http", self.get.get_type())
 
     def test_get_host(self):
-        self.assertEqual("www.python.org", self.get.get_host())
+        self.assertEqual("www.python.org", self.get.host)
 
     def test_get_host_unquote(self):
         req = Request("http://www.%70ython.org/")
-        self.assertEqual("www.python.org", req.get_host())
+        self.assertEqual("www.python.org", req.host)
 
     def test_proxy(self):
         self.assertTrue(not self.get.has_proxy())
         self.get.set_proxy("www.perl.org", "http")
         self.assertTrue(self.get.has_proxy())
-        self.assertEqual("www.python.org", self.get.get_origin_req_host())
-        self.assertEqual("www.perl.org", self.get.get_host())
+        self.assertEqual("www.python.org", self.get.origin_req_host)
+        self.assertEqual("www.perl.org", self.get.host)
 
 
 if __name__ == "__main__":

@@ -22,8 +22,8 @@ except NameError:
 from ._urllib2_fork import Request
 from ._response import seek_wrapped_response
 from ._rfc3986 import urlsplit
-from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
-from ._urllib2_fork import HTTPDefaultErrorHandler, ProxyHandler, HTTPRedirectHandler, UnknownHandler, FTPHandler, FileHandler, OpenerDirector as ex_OpenerDirector, HTTPErrorProcessor, HTTPCookieProcessor, HTTPHandler
+from socket import _GLOBAL_DEFAULT_TIMEOUT
+from urllib.request import HTTPDefaultErrorHandler, ProxyHandler, HTTPRedirectHandler, UnknownHandler, FTPHandler, FileHandler, OpenerDirector as ex_OpenerDirector, HTTPErrorProcessor, HTTPCookieProcessor, HTTPHandler
 from ._util import isstringlike
 
 open_file = open
@@ -170,7 +170,7 @@ class OpenerDirector(ex_OpenerDirector):
     def open(self, fullurl, data=None,
              timeout=_GLOBAL_DEFAULT_TIMEOUT):
         req = self._request(fullurl, data, None, timeout)
-        req_scheme = req.get_type()
+        req_scheme = req.type
 
         self._maybe_reindex_handlers()
 
@@ -246,15 +246,15 @@ class OpenerDirector(ex_OpenerDirector):
 
         """
         req = self._request(fullurl, data, False, timeout)
-        scheme = req.get_type()
+        scheme = req.type
         fp = self.open(req)
         try:
             headers = fp.info()
             if filename is None and scheme == 'file':
-                # XXX req.get_selector() seems broken here, return None,
+                # XXX req.selector seems broken here, return None,
                 #   pending sanity :-/
                 return None, headers
-                #return urllib.url2pathname(req.get_selector()), headers
+                #return urllib.url2pathname(req.selector), headers
             if filename:
                 tfp = open(filename, 'wb')
             else:

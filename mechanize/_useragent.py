@@ -17,7 +17,7 @@ from ._auth import HTTPProxyPasswordMgr
 from ._gzip import HTTPGzipProcessor
 from ._opener import wrapped_open, OpenerDirector
 from ._response import seek_wrapped_response
-from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
+from socket import _GLOBAL_DEFAULT_TIMEOUT
 from ._urllib2 import HTTPResponseDebugProcessor, HTTPDefaultErrorHandler, HTTPBasicAuthHandler, FTPHandler, HTTPEquivProcessor, HTTPPasswordMgrWithDefaultRealm, ProxyDigestAuthHandler, HTTPRedirectHandler, UnknownHandler, ProxyHandler, HTTPRefreshProcessor, ProxyBasicAuthHandler, HTTPRobotRulesProcessor, HTTPRedirectDebugProcessor, FileHandler, HTTPDigestAuthHandler, HTTPErrorProcessor, HTTPCookieProcessor, HTTPSClientCertMgr, HTTPHandler
 
 

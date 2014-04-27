@@ -21,14 +21,14 @@ import socket
 import time
 
 from ._sgmllib_copy import SGMLParser, SGMLParseError
-from ._urllib2_fork import HTTPError, BaseHandler
+from urllib.request import HTTPError, BaseHandler
 
 from ._headersutil import is_html
 from ._html import unescape
 from ._urllib2_fork import Request
 from ._response import response_seek_wrapper
 from ._rfc3986 import clean_url
-from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
+from socket import _GLOBAL_DEFAULT_TIMEOUT
 
 debug = logging.getLogger("mechanize").debug
 debug_robots = logging.getLogger("mechanize.robots").debug
@@ -279,22 +279,22 @@ class HTTPRobotRulesProcessor(BaseHandler):
         self._host = None
 
     def http_request(self, request):
-        scheme = request.get_type()
+        scheme = request.type
         if scheme not in ["http", "https"]:
             # robots exclusion only applies to HTTP
             return request
 
-        if request.get_selector() == "/robots.txt":
+        if request.selector == "/robots.txt":
             # /robots.txt is always OK to fetch
             return request
 
-        host = request.get_host()
+        host = request.host
 
         # robots.txt requests don't need to be allowed by robots.txt :-)
         origin_req = getattr(request, "_origin_req", None)
         if (origin_req is not None and
-            origin_req.get_selector() == "/robots.txt" and
-            origin_req.get_host() == host
+            origin_req.selector == "/robots.txt" and
+            origin_req.host == host
             ):
             return request
 

@@ -9,7 +9,7 @@ from ._debug import \
 # crap ATM
 ## from _gzip import \
 ##      HTTPGzipProcessor
-from ._urllib2_fork import \
+from urllib.request import \
      AbstractBasicAuthHandler, \
      AbstractDigestAuthHandler, \
      BaseHandler, \

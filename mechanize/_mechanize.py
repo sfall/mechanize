@@ -15,8 +15,8 @@ from ._html import DefaultFactory
 from ._response import upgrade_response
 from ._urllib2_fork import Request
 from ._rfc3986 import urlunsplit, urljoin, urlsplit
-from ._sockettimeout import _GLOBAL_DEFAULT_TIMEOUT
-from ._urllib2_fork import BaseHandler
+from socket import _GLOBAL_DEFAULT_TIMEOUT
+from urllib.request import BaseHandler
 from ._useragent import UserAgentBase
 
 class BrowserStateError(Exception): pass
@@ -165,8 +165,8 @@ class Browser(UserAgentBase):
     def _add_referer_header(self, request, origin_request=True):
         if self.request is None:
             return request
-        scheme = request.get_type()
-        original_scheme = self.request.get_type()
+        scheme = request.type
+        original_scheme = self.request.type
         if scheme not in ["http", "https"]:
             return request
         if not origin_request and not self.request.has_header("Referer"):
@@ -390,7 +390,7 @@ class Browser(UserAgentBase):
         """
         if self._response is None:
             raise BrowserStateError("not viewing any document")
-        if self.request.get_type() not in ["http", "https"]:
+        if self.request.type not in ["http", "https"]:
             raise BrowserStateError("can't set cookie for non-HTTP/HTTPS "
                                     "transactions")
         cookiejar = self._ua_handlers["_cookies"].cookiejar

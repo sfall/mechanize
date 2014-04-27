@@ -189,7 +189,7 @@ def request_path(request):
     return path
 
 def request_port(request):
-    host = request.get_host()
+    host = request.host
     i = host.find(':')
     if i >= 0:
         port = host[i+1:]
@@ -204,7 +204,7 @@ def request_port(request):
 
 def request_is_unverifiable(request):
     try:
-        return request.is_unverifiable()
+        return request.unverifiable
     except AttributeError:
         if hasattr(request, "unverifiable"):
             return request.unverifiable
@@ -884,7 +884,7 @@ class DefaultCookiePolicy(CookiePolicy):
         return True
 
     def return_ok_secure(self, cookie, request):
-        if cookie.secure and request.get_type() != "https":
+        if cookie.secure and request.type != "https":
             debug("   secure cookie with non-secure request")
             return False
         return True
