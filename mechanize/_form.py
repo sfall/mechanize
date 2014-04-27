@@ -70,7 +70,7 @@ import urllib.request, urllib.parse, urllib.error
 import urllib.parse
 import warnings
 
-from ._beautifulsoup import BeautifulSoup, ICantBelieveItsBeautifulSoup
+from bs4 import BeautifulSoup
 from ._urllib2_fork import Request
 
 from ._sgmllib_copy import SGMLParseError, SGMLParser
@@ -755,18 +755,6 @@ class RobustFormParser(_AbstractBSFormParser, BeautifulSoup):
     """Tries to be highly tolerant of incorrect HTML."""
 
     bs_base_class = BeautifulSoup
-
-
-class NestingRobustFormParser(_AbstractBSFormParser,
-                              ICantBelieveItsBeautifulSoup):
-
-    """Tries to be highly tolerant of incorrect HTML.
-
-    Different from RobustFormParser in that it more often guesses nesting
-    above missing end tags (see BeautifulSoup docs).
-    """
-
-    bs_base_class = ICantBelieveItsBeautifulSoup
 
 
 #FormParser = XHTMLCompatibleFormParser  # testing hack

@@ -16,7 +16,7 @@ import re
 from html.parser import HTMLParser
 from ._sgmllib_copy import SGMLParseError
 
-from ._beautifulsoup import BeautifulSoup, Tag, Null
+from bs4 import BeautifulSoup, Tag
 from ._form import RobustFormParser, FormParser, ParseResponseEx, ParseError as ex_ParseError
 from ._headersutil import split_header_words, is_html as _is_html
 from ._urllib2_fork import Request
@@ -402,7 +402,7 @@ class RobustTitleFactory:
 
     def title(self):
         title = self._bs.first("title")
-        if title == Null:
+        if title == None:
             return None
         else:
             inner_html = "".join([str(node) for node in title.contents])
