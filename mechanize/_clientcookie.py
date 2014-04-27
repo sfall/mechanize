@@ -60,7 +60,7 @@ def reraise_unmasked_exceptions(exc, unmasked=None):
         raise exc
     unmasked = unmasked + [KeyboardInterrupt, SystemExit, MemoryError]
     etype = sys.exc_info()[0]
-    if issubclass(etype, unmasked):
+    if issubclass(etype, tuple(unmasked)):
         raise exc
     # swallowed an exception
     import traceback, io
@@ -1101,7 +1101,7 @@ class CookieJar:
             ap = a.path
             bp = b.path
             return (bp > ap) - (ap < bp)
-        cookies.sort(decreasing_size)
+        cookies.sort(key=decreasing_size)
         return cookies
 
     def _cookies_for_request(self, request):
@@ -1418,8 +1418,8 @@ class CookieJar:
     def _make_cookies(self, response, request):
         # get cookie-attributes for RFC 2965 and Netscape protocols
         headers = response.info()
-        rfc2965_hdrs = headers.getheaders("Set-Cookie2")
-        ns_hdrs = headers.getheaders("Set-Cookie")
+        rfc2965_hdrs = headers.get_all("Set-Cookie2")
+        ns_hdrs = headers.get_all("Set-Cookie")
 
         rfc2965 = self._policy.rfc2965
         netscape = self._policy.netscape

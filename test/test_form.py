@@ -12,8 +12,10 @@ import unittest
 
 import mechanize
 import mechanize._form as _form
-from mechanize import ControlNotFoundError,  ItemNotFoundError, \
-     ItemCountError, AmbiguityError
+from mechanize import AmbiguityError
+from mechanize import ControlNotFoundError
+from mechanize import ItemCountError
+from mechanize import ItemNotFoundError
 import mechanize._testcase as _testcase
 from mechanize._util import get1
 
@@ -414,7 +416,7 @@ Rhubarb.
         self.assert_(form.name is None)
         self.assertEqual(
             form.action,
-            "http://localhost/abc&amp;"+"\u2014".encode('utf8')+"d")
+            "http://localhost/abc&amp;"+"\u2014"+"d")
         control = form.find_control(type="textarea", nr=0)
         self.assert_(control.name is None)
         self.assert_(control.value == "blah, blah,\r\nRhubarb.\r\n\r\n")
@@ -3353,7 +3355,7 @@ class CaseInsensitiveDict:
         for key, val in items:
             self._dict[key.lower()] = val
 
-    def __getitem__(self, key): return self._dict[key]
+    def __getitem__(self, key): return self._dict.get(key)
 
     def __getattr__(self, name): return getattr(self._dict, name)
 

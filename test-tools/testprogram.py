@@ -166,7 +166,7 @@ class TornadoServerProcess(ServerProcess):
     def __init__(self, uri, name, log=False):
         this_dir = os.path.dirname(__file__)
         path = os.path.join(this_dir, "tornado-localserver.py")
-        super().__init__(self, path, name)
+        super(TornadoServerProcess, self).__init__(path, name)
         self.uri = uri
         authority = mechanize._rfc3986.urlsplit(uri)[1]
         host, port = urllib.parse.splitport(authority)
@@ -191,7 +191,7 @@ class FtpServerProcess(ServerProcess):
     def __init__(self, name, port=2121, log=False):
         this_dir = os.path.dirname(__file__)
         path = os.path.join(this_dir, "pyftpdlib-ftpserver.py")
-        super().__init__(self, path, name)
+        super(FtpServerProcess, self).__init__(path, name)
         self._temp_maker = mechanize._testcase.TempDirMaker()
         self.root_path = self._temp_maker.make_temp_dir()
         self.port = port

@@ -70,7 +70,7 @@ def splithost(url):
     if _hostprog is None:
         import re
 
-        _hostprog = re.compile('^//([^/?]*)(.*)$'.encode('utf8'))
+        _hostprog = re.compile('^//([^/?]*)(.*)$')
 
     match = _hostprog.match(url)
     if match:

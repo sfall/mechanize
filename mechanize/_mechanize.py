@@ -142,7 +142,7 @@ class Browser(UserAgentBase):
     def close(self):
         UserAgentBase.close(self)
         if self._response is not None:
-            self.ex_close()    
+            self._response.close()
         if self._history is not None:
             self._history.close()
             self._history = None
@@ -215,7 +215,7 @@ class Browser(UserAgentBase):
                     raise BrowserStateError(
                         "can't fetch relative reference: "
                         "not viewing any document")
-                url = urljoin(self.ex_geturl(), url)
+                url = urljoin(self._response.geturl(), url)
 
         request = self._request(url, data, visit, timeout)
         visit = request.visit
@@ -259,7 +259,7 @@ class Browser(UserAgentBase):
         text = []
         text.append("<%s " % self.__class__.__name__)
         if self._response:
-            text.append("visiting %s" % self.ex_geturl())
+            text.append("visiting %s" % self._response.geturl())
         else:
             text.append("(not visiting a URL)")
         if self.form:
@@ -303,7 +303,7 @@ class Browser(UserAgentBase):
         if response is not None:
             response = upgrade_response(response)
         if close_current and self._response is not None:
-            self.ex_close()
+            self._response.close()
         self._response = response
         self._factory.set_response(response)
 
@@ -320,7 +320,7 @@ class Browser(UserAgentBase):
 
     def _visit_request(self, request, update_history):
         if self._response is not None:
-            self.ex_close()
+            self._response.close()
         if self.request is not None and update_history:
             self._history.add(self.request, self._response)
         self._response = None
@@ -332,14 +332,14 @@ class Browser(UserAgentBase):
         """Get URL of current document."""
         if self._response is None:
             raise BrowserStateError("not viewing any document")
-        return self.ex_geturl()
+        return self._response.geturl()
 
     def reload(self):
         """Reload current document, and return response object."""
         if self.request is None:
             raise BrowserStateError("no URL has yet been .open()ed")
         if self._response is not None:
-            self.ex_close()
+            self._response.close()
         return self._mech_open(self.request, update_history=False)
 
     def back(self, n=1):
@@ -349,7 +349,7 @@ class Browser(UserAgentBase):
 
         """
         if self._response is not None:
-            self.ex_close()
+            self._response.close()
         self.request, response = self._history.back(n, self._response)
         self.set_response(response)
         if not response.read_complete:
