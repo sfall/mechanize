@@ -13,6 +13,7 @@ import copy
 import html.entities
 import re
 
+from html.parser import HTMLParser
 from ._sgmllib_copy import SGMLParseError
 
 from ._beautifulsoup import BeautifulSoup, Tag, Null
@@ -258,11 +259,10 @@ class TitleFactory:
             if tok.type == "data":
                 text.append(str(tok))
             elif tok.type == "entityref":
-                t = unescape("&%s;" % tok.data,
-                             parser._entitydefs, parser.encoding)
+                t = unescape("&{};".format(tok.data))
                 text.append(t)
             elif tok.type == "charref":
-                t = unescape_charref(tok.data, parser.encoding)
+                t = unescape("&#{};".format(tok.data))
                 text.append(t)
             elif tok.type in ["starttag", "endtag", "startendtag"]:
                 tag_name = tok.data
@@ -287,44 +287,8 @@ class TitleFactory:
             raise ex_ParseError(exc)
 
 
-def unescape(data, entities, encoding):
-    if data is None or "&" not in data:
-        return data
-
-    def replace_entities(match):
-        ent = match.group()
-        if ent[1] == "#":
-            return unescape_charref(ent[2:-1], encoding)
-
-        repl = entities.get(ent[1:-1])
-        if repl is not None:
-            repl = chr(repl)
-            if repl is not str:
-                try:
-                    repl = repl.encode(encoding)
-                except UnicodeError:
-                    repl = ent
-        else:
-            repl = ent
-        return repl
-
-    return re.sub(r"&#?[A-Za-z0-9]+?;".encode('utf8'), replace_entities, data)
-
-
-def unescape_charref(data, encoding):
-    name, base = data, 10
-    if name.startswith("x"):
-        name, base = name[1:], 16
-    uc = chr(int(name, base))
-    if encoding is None:
-        return uc
-    else:
-        try:
-            repl = uc.encode(encoding)
-        except UnicodeError:
-            repl = "&#%s;" % data
-        return repl
-
+def unescape(data):
+    return HTMLParser.unescape(data)
 
 class MechanizeBs(BeautifulSoup):
     _entitydefs = html.entities.name2codepoint
@@ -341,17 +305,17 @@ class MechanizeBs(BeautifulSoup):
             self, text, avoidParserProblems, initialTextIsEverything)
 
     def handle_charref(self, ref):
-        t = unescape("&#%s;" % ref, self._entitydefs, self._encoding)
+        t = unescape("&#{};".format(ref))
         self.handle_data(t)
 
     def handle_entityref(self, ref):
-        t = unescape("&%s;" % ref, self._entitydefs, self._encoding)
+        t = unescape("&{};".format(ref))
         self.handle_data(t)
 
     def unescape_attrs(self, attrs):
         escaped_attrs = []
         for key, val in attrs:
-            val = unescape(val, self._entitydefs, self._encoding)
+            val = unescape(val)
             escaped_attrs.append((key, val))
         return escaped_attrs
 

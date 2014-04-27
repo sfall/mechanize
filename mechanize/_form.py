@@ -117,42 +117,8 @@ def normalize_line_endings(text):
     return re.sub(r"(?:(?<!\r)\n)|(?:\r(?!\n))", "\r\n", text)
 
 
-def unescape(data, entities, encoding=DEFAULT_ENCODING):
-    if data is None or "&" not in data:
-        return data
-
-    def replace_entities(match, entities=entities, encoding=encoding):
-        ent = match.group()
-        if ent[1] == "#":
-            return unescape_charref(ent[2:-1], encoding)
-
-        repl = entities.get(ent)
-        if repl is not None:
-            if type(repl) != type(""):
-                try:
-                    repl = repl.encode(encoding)
-                except UnicodeError:
-                    repl = ent
-        else:
-            repl = ent
-
-        return repl
-
-    return re.sub(r"&#?[A-Za-z0-9]+?;", replace_entities, data)
-
-def unescape_charref(data, encoding):
-    name, base = data, 10
-    if name.startswith("x"):
-        name, base= name[1:], 16
-    uc = chr(int(name, base))
-    if encoding is None:
-        return uc
-    else:
-        try:
-            repl = uc.encode(encoding)
-        except UnicodeError:
-            repl = "&#%s;" % data
-        return repl
+def unescape(data):
+    return html.parser.HTMLParser.unescape(data)
 
 def get_entitydefs():
     import html.entities
@@ -165,11 +131,11 @@ def get_entitydefs():
         for name, char in list(html.entities.entitydefs.items()):
             uc = latin_1_decode(char)[0]
             if uc.startswith("&#") and uc.endswith(";"):
-                uc = unescape_charref(uc[2:-1], None)
-            entitydefs["&%s;" % name] = uc
+                uc = unescape(uc)
+            entitydefs["&{};".format(name)] = uc
     else:
         for name, codepoint in list(html.entities.name2codepoint.items()):
-            entitydefs["&%s;" % name] = chr(codepoint)
+            entitydefs["&{};".format(name)] = chr(codepoint)
     return entitydefs
 
 
@@ -644,16 +610,15 @@ class _AbstractFormParser:
 
     def handle_entityref(self, name):
         #debug("%s", name)
-        self.handle_data(unescape(
-            '&%s;' % name, self._entitydefs, self._encoding))
+        self.handle_data(unescape('&{};'.format(name)))
 
     def handle_charref(self, name):
         #debug("%s", name)
-        self.handle_data(unescape_charref(name, self._encoding))
+        self.handle_data(unescape('&#{};'.format(name)))
 
     def unescape_attr(self, name):
         #debug("%s", name)
-        return unescape(name, self._entitydefs, self._encoding)
+        return unescape(name)
 
     def unescape_attrs(self, attrs):
         #debug("%s", attrs)
@@ -736,9 +701,9 @@ class _AbstractSgmllibParser(_AbstractFormParser):
     entity_or_charref = re.compile(
         '&(?:([a-zA-Z][-.a-zA-Z0-9]*)|#(x?[0-9a-fA-F]+))(;?)')
     def convert_entityref(self, name):
-        return unescape("&%s;" % name, self._entitydefs, self._encoding)
+        return unescape("&{};".format(name))
     def convert_charref(self, name):
-        return unescape_charref("%s" % name, self._encoding)
+        return unescape("&#{};".format(name))
     def unescape_attr_if_required(self, name):
         return name  # sgmllib already did it
     def unescape_attrs_if_required(self, attrs):

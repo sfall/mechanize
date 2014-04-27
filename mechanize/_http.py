@@ -24,7 +24,7 @@ from ._sgmllib_copy import SGMLParser, SGMLParseError
 from ._urllib2_fork import HTTPError, BaseHandler
 
 from ._headersutil import is_html
-from ._html import unescape, unescape_charref
+from ._html import unescape
 from ._urllib2_fork import Request
 from ._response import response_seek_wrapper
 from ._rfc3986 import clean_url
@@ -72,16 +72,15 @@ class AbstractHeadParser:
 
     def handle_entityref(self, name):
         #debug("%s", name)
-        self.handle_data(unescape(
-            '&%s;' % name, self._entitydefs, self._encoding))
+        self.handle_data(unescape('&{};'.format(name)))
 
     def handle_charref(self, name):
         #debug("%s", name)
-        self.handle_data(unescape_charref(name, self._encoding))
+        self.handle_data(unescape('&#{};'.format(name)))
 
     def unescape_attr(self, name):
         #debug("%s", name)
-        return unescape(name, self._entitydefs, self._encoding)
+        return unescape(name)
 
     def unescape_attrs(self, attrs):
         #debug("%s", attrs)
@@ -91,10 +90,10 @@ class AbstractHeadParser:
         return escaped_attrs
 
     def unknown_entityref(self, ref):
-        self.handle_data("&%s;" % ref)
+        self.handle_data("&{};".format(ref))
 
     def unknown_charref(self, ref):
-        self.handle_data("&#%s;" % ref)
+        self.handle_data("&#{};".format(ref))
 
 
 class XHTMLCompatibleHeadParser(AbstractHeadParser,

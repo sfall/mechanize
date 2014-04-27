@@ -38,7 +38,7 @@ from ._sgmllib_copy import SGMLParser
 import html.parser
 from xml.sax import saxutils
 
-from ._html import unescape, unescape_charref
+from ._html import unescape
 import collections
 
 
@@ -300,10 +300,10 @@ class _AbstractParser:
             if tok.type == "data":
                 text.append(tok.data)
             elif tok.type == "entityref":
-                t = unescape("&%s;"%tok.data, self._entitydefs, self.encoding)
+                t = unescape("&{};".format(tok.data))
                 text.append(t)
             elif tok.type == "charref":
-                t = unescape_charref(tok.data, self.encoding)
+                t = unescape("&#{};".format(tok.data))
                 text.append(t)
             elif tok.type in ["starttag", "endtag", "startendtag"]:
                 tag_name = tok.data
@@ -357,7 +357,7 @@ class _AbstractParser:
         self._tokenstack.append(Token("pi", data))
 
     def unescape_attr(self, name):
-        return unescape(name, self._entitydefs, self.encoding)
+        return unescape(name)
     def unescape_attrs(self, attrs):
         escaped_attrs = []
         for key, val in attrs:
