@@ -1265,7 +1265,7 @@ class HandlerTests(mechanize._testcase.TestCase):
                 try:
                     self.assertEqual(o.req.get_method(), "GET")
                 except AttributeError:
-                    self.assertFalse(o.req.has_data())
+                    self.assertFalse(o.req.data is not None)
 
                 # now it's a GET, there should not be headers regarding content
                 # (possibly dragged from before being a POST)
@@ -1641,10 +1641,10 @@ class RequestTests(unittest.TestCase):
         self.assertEqual("GET", self.get.get_method())
 
     def test_add_data(self):
-        self.assertTrue(not self.get.has_data())
+        self.assertTrue(not self.get.data is not None)
         self.assertEqual("GET", self.get.get_method())
         self.get.add_data("spam")
-        self.assertTrue(self.get.has_data())
+        self.assertTrue(self.get.data is not None)
         self.assertEqual("POST", self.get.get_method())
 
     def test_get_full_url(self):

@@ -164,21 +164,12 @@ class BaseRequest:
         raise AttributeError(attr)
 
     def get_method(self):
-        if self.has_data():
+        if self.data is not None:
             return "POST"
         else:
             return "GET"
 
     # XXX these helper methods are lame
-
-    def add_data(self, data):
-        self.data = data
-
-    def has_data(self):
-        return self.data is not None
-
-    def get_data(self):
-        return self.data
 
     def get_full_url(self):
         return self.__original
@@ -958,8 +949,8 @@ class AbstractDigestAuthHandler:
             return None
 
         # XXX not implemented yet
-        if req.has_data():
-            entdig = self.get_entity_digest(req.get_data(), chal)
+        if req.data:
+            entdig = self.get_entity_digest(req.data, chal)
         else:
             entdig = None
 
@@ -1059,8 +1050,8 @@ class AbstractHTTPHandler(BaseHandler):
         if not host:
             raise URLError('no host given')
 
-        if request.has_data():  # POST
-            data = request.get_data()
+        if request.data is not None:  # POST
+            data = request.data
             if not request.has_header('Content-type'):
                 request.add_unredirected_header(
                     'Content-type',

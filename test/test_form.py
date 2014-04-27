@@ -196,7 +196,7 @@ class LWPFormTests(unittest.TestCase):
         form["firstname"] = "Gisle Aas"
         req = form.click()
         def request_method(req):
-            if req.has_data():
+            if req.data is not None:
                 return "POST"
             else:
                 return "GET"
@@ -3395,10 +3395,10 @@ class UploadTests(_testcase.TestCase):
         self.assertTrue(get_header(req, "Content-type").startswith(
                 "multipart/form-data; boundary="))
 
-        #print "req.get_data()\n>>%s<<" % req.get_data()
+        #print "req.data\n>>%s<<" % req.data
 
         # ...and check the resulting request is understood by cgi module
-        fs = cgi.FieldStorage(StringIO(req.get_data()),
+        fs = cgi.FieldStorage(StringIO(req.data),
                               CaseInsensitiveDict(header_items(req)),
                               environ={"REQUEST_METHOD": "POST"})
         self.assert_(fs["user"].value == "john")
@@ -3419,7 +3419,7 @@ class UploadTests(_testcase.TestCase):
                 "multipart/form-data; boundary="))
 
         # ...and check the resulting request is understood by cgi module
-        fs = cgi.FieldStorage(StringIO(req.get_data()),
+        fs = cgi.FieldStorage(StringIO(req.data),
                               CaseInsensitiveDict(header_items(req)),
                               environ={"REQUEST_METHOD": "POST"})
         self.assert_(fs["user"].value == "john")
@@ -3443,10 +3443,10 @@ class UploadTests(_testcase.TestCase):
         self.assertTrue(get_header(req, "Content-type").startswith(
                 "multipart/form-data; boundary="))
 
-        #print "req.get_data()\n>>%s<<" % req.get_data()
+        #print "req.data\n>>%s<<" % req.data
 
         # ...and check the resulting request is understood by cgi module
-        fs = cgi.FieldStorage(StringIO(req.get_data()),
+        fs = cgi.FieldStorage(StringIO(req.data),
                               CaseInsensitiveDict(header_items(req)),
                               environ={"REQUEST_METHOD": "POST"})
         self.assert_(fs["user"].value == "john")
@@ -3463,7 +3463,7 @@ class UploadTests(_testcase.TestCase):
 
     def test_upload_data(self):
         form = self.make_form()
-        data = form.click().get_data()
+        data = form.click().data
         self.assertTrue(data.startswith("--"))
 
     def test_empty_upload(self):
@@ -3473,7 +3473,7 @@ class UploadTests(_testcase.TestCase):
 <input type="submit" name="submit"></input>
 </form></html>"""), ".", backwards_compat=False)
         form = forms[0]
-        data = form.click().get_data()
+        data = form.click().data
         lines = data.split("\r\n")
         self.assertTrue(lines[0].startswith("--"))
         self.assertEqual(lines[1],
@@ -3490,7 +3490,7 @@ class UploadTests(_testcase.TestCase):
 <INPUT type="file" name="spam" />
 </form></html>"""), ".")
         form = forms[1]
-        data = form.click().get_data()
+        data = form.click().data
         self.assertEquals(data, """\
 --123\r
 Content-Disposition: form-data; name="spam"; filename=""\r

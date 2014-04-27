@@ -160,7 +160,7 @@ class OpenerDirector(ex_OpenerDirector):
             # already a mechanize.Request instance
             req = url_or_req
             if data is not None:
-                req.add_data(data)
+                req.data = data
             # XXX yuck
             set_request_attr(req, "visit", visit, None)
             set_request_attr(req, "timeout", timeout,
