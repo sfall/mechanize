@@ -11,7 +11,7 @@ COPYING.txt included with the distribution).
 
 import os, re
 
-from ._util import http2time
+from http.cookiejar import http2time
 from ._rfc3986 import urlsplit
 
 

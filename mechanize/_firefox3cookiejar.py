@@ -11,7 +11,7 @@ COPYING.txt included with the distribution).
 import logging
 import time
 
-from ._clientcookie import CookieJar, Cookie, MappingIterator
+from http.cookiejar import CookieJar, Cookie, deepvalues
 from ._util import isstringlike, experimental
 debug = logging.getLogger("mechanize.cookies").debug
 
@@ -204,7 +204,7 @@ INSERT INTO moz_cookies VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 
     def __iter__(self):
         # session (non-persistent) cookies
-        for cookie in MappingIterator(self._cookies):
+        for cookie in deepvalues(self._cookies):
             yield cookie
         # persistent cookies
         for row in self._query("""\

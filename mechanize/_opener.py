@@ -46,7 +46,7 @@ def set_request_attr(req, name, value, default):
 
 class OpenerDirector(ex_OpenerDirector):
     def __init__(self):
-        ex_OpenerDirector.__init__(self)
+        super().__init__(self)
         # really none of these are (sanely) public -- the lack of initial
         # underscore on some is just due to following urllib2
         self.process_response = {}

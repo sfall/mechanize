@@ -141,16 +141,14 @@ from ._opener import ContentTooShortError, OpenerFactory, urlretrieve
 from ._response import \
     response_seek_wrapper, seek_wrapped_response, make_response
 from ._rfc3986 import urljoin
-from ._util import http2time as str2time
+from http.cookiejar import http2time as str2time
 
 # cookies
-from ._clientcookie import Cookie, CookiePolicy, DefaultCookiePolicy, \
-    CookieJar, FileCookieJar, LoadError, request_host_lc as request_host, \
-    effective_request_host
-from ._lwpcookiejar import LWPCookieJar, lwp_cookie_str
+from http.cookiejar import Cookie, CookiePolicy, DefaultCookiePolicy, \
+    CookieJar, FileCookieJar, LoadError, request_host, LWPCookieJar, \
+    lwp_cookie_str, MozillaCookieJar
 import sqlite3
 from ._firefox3cookiejar import Firefox3CookieJar
-from ._mozillacookiejar import MozillaCookieJar
 from ._msiecookiejar import MSIECookieJar
 
 # forms
