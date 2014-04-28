@@ -13,8 +13,7 @@ import copy
 import html.entities
 import re
 
-from html.parser import HTMLParser
-from ._sgmllib_copy import SGMLParseError
+from html.parser import HTMLParser, HTMLParseError
 
 from bs4 import BeautifulSoup, Tag
 from ._form import RobustFormParser, FormParser, ParseResponseEx, ParseError as ex_ParseError
@@ -187,7 +186,7 @@ class LinksFactory:
                         #text = p.get_compressed_text()
 
                 yield Link(base_url, url, text, tag, token.attrs)
-        except SGMLParseError as exc:
+        except HTMLParseError as exc:
             raise ex_ParseError(exc)
 
 
@@ -283,7 +282,7 @@ class TitleFactory:
                 return None
             else:
                 return self._get_title_text(p)
-        except SGMLParseError as exc:
+        except HTMLParseError as exc:
             raise ex_ParseError(exc)
 
 

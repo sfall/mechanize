@@ -73,7 +73,7 @@ import warnings
 from bs4 import BeautifulSoup
 from ._urllib2_fork import Request
 
-from ._sgmllib_copy import SGMLParseError, SGMLParser
+from html.parser import HTMLParseError, HTMLParser
 import collections
 
 
@@ -317,8 +317,7 @@ class ItemCountError(ValueError): pass
 # for backwards compatibility, ParseError derives from exceptions that were
 # raised by versions of ClientForm <= 0.2.5
 # TODO: move to _html
-class ParseError(SGMLParseError,
-                 html.parser.HTMLParseError):
+class ParseError(html.parser.HTMLParseError):
 
     def __init__(self, *args, **kwds):
         Exception.__init__(self, *args, **kwds)
@@ -692,7 +691,7 @@ class XHTMLCompatibleFormParser(_AbstractFormParser, html.parser.HTMLParser):
         self.end_body()
 
 
-class _AbstractSgmllibParser(_AbstractFormParser):
+class _AbstractHtmllibParser(_AbstractFormParser):
 
     def do_option(self, attrs):
         _AbstractFormParser._start_option(self, attrs)
@@ -710,24 +709,24 @@ class _AbstractSgmllibParser(_AbstractFormParser):
         return attrs  # ditto
 
 
-class FormParser(_AbstractSgmllibParser, SGMLParser):
+class FormParser(_AbstractHtmllibParser, HTMLParser):
     """Good for tolerance of incorrect HTML, bad for XHTML."""
     def __init__(self, entitydefs=None, encoding=DEFAULT_ENCODING):
-        SGMLParser.__init__(self)
+        HTMLParser.__init__(self)
         _AbstractFormParser.__init__(self, entitydefs, encoding)
 
     def feed(self, data):
         try:
-            SGMLParser.feed(self, data)
-        except SGMLParseError as exc:
+            HTMLParser.feed(self, data)
+        except HTMLParseError as exc:
             raise ParseError(exc)
 
     def close(self):
-        SGMLParser.close(self)
+        HTMLParser.close(self)
         self.end_body()
 
 
-class _AbstractBSFormParser(_AbstractSgmllibParser):
+class _AbstractBSFormParser(_AbstractHtmllibParser):
 
     bs_base_class = None
 
@@ -742,7 +741,7 @@ class _AbstractBSFormParser(_AbstractSgmllibParser):
     def feed(self, data):
         try:
             self.bs_base_class.feed(self, data)
-        except SGMLParseError as exc:
+        except HTMLParseError as exc:
             raise ParseError(exc)
 
     def close(self):

@@ -20,7 +20,7 @@ import urllib.robotparser
 import socket
 import time
 
-from ._sgmllib_copy import SGMLParser, SGMLParseError
+from html.parser import HTMLParser, HTMLParseError
 from urllib.request import HTTPError, BaseHandler
 
 from ._headersutil import is_html
@@ -135,13 +135,13 @@ class XHTMLCompatibleHeadParser(AbstractHeadParser,
     def unescape_attr_if_required(self, name):
         return name  # HTMLParser.HTMLParser already did it
 
-class HeadParser(AbstractHeadParser, SGMLParser):
+class HeadParser(AbstractHeadParser, HTMLParser):
 
     def _not_called(self):
         assert False
 
     def __init__(self):
-        SGMLParser.__init__(self)
+        HTMLParser.__init__(self)
         AbstractHeadParser.__init__(self)
 
     def handle_starttag(self, tag, method, attrs):
@@ -200,8 +200,7 @@ class HTTPEquivProcessor(BaseHandler):
                                               self.head_parser_class())
                 finally:
                     response.seek(0)
-            except (html.parser.HTMLParseError,
-                    SGMLParseError):
+            except (HTMLParseError):
                 pass
             else:
                 for hdr, val in html_headers:
