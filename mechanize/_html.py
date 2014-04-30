@@ -19,7 +19,8 @@ from bs4 import BeautifulSoup, Tag
 from ._form import RobustFormParser, FormParser, ParseResponseEx, ParseError as ex_ParseError
 from ._headersutil import split_header_words, is_html as _is_html
 from ._urllib2_fork import Request
-from ._rfc3986 import urljoin, clean_url, urlunsplit, urlsplit
+from ._rfc3986 import clean_url
+from urllib.parse import urljoin, urlunsplit, urlsplit
 
 DEFAULT_ENCODING = "latin-1"
 

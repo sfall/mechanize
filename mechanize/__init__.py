@@ -140,7 +140,7 @@ from ._http import XHTMLCompatibleHeadParser
 from ._opener import ContentTooShortError, OpenerFactory, urlretrieve
 from ._response import \
     response_seek_wrapper, seek_wrapped_response, make_response
-from ._rfc3986 import urljoin
+from urllib.parse import urljoin
 from http.cookiejar import http2time as str2time
 
 # cookies

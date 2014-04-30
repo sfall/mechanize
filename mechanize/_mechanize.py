@@ -14,7 +14,7 @@ import copy, re, os, urllib.request, urllib.parse, urllib.error, urllib.request,
 from ._html import DefaultFactory
 from ._response import upgrade_response
 from ._urllib2_fork import Request
-from ._rfc3986 import urlunsplit, urljoin, urlsplit
+from urllib.parse import urlunsplit, urljoin, urlsplit
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 from urllib.request import BaseHandler
 from ._useragent import UserAgentBase

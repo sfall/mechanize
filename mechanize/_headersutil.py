@@ -12,7 +12,7 @@ COPYING.txt included with the distribution).
 import os, re
 
 from http.cookiejar import http2time
-from ._rfc3986 import urlsplit
+from urllib.parse import urlsplit
 
 
 def is_html_file_extension(url, allow_xhtml):

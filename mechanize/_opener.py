@@ -21,7 +21,7 @@ except NameError:
 
 from ._urllib2_fork import Request
 from ._response import seek_wrapped_response
-from ._rfc3986 import urlsplit
+from urllib.parse import urlsplit
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 from urllib.request import HTTPDefaultErrorHandler, ProxyHandler, HTTPRedirectHandler, UnknownHandler, FTPHandler, FileHandler, OpenerDirector as ex_OpenerDirector, HTTPErrorProcessor, HTTPCookieProcessor, HTTPHandler
 from ._util import isstringlike
