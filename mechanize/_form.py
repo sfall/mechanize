@@ -66,7 +66,8 @@ import logging
 import random
 import re
 import sys
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.error
 import urllib.parse
 import warnings
 
