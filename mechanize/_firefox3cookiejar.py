@@ -12,7 +12,7 @@ import logging
 import time
 
 from http.cookiejar import CookieJar, Cookie, deepvalues
-from ._util import isstringlike, experimental
+from ._util import experimental
 debug = logging.getLogger("mechanize.cookies").debug
 
 
@@ -49,7 +49,7 @@ class Firefox3CookieJar(CookieJar):
     def __init__(self, filename, autoconnect=True, policy=None):
         experimental("Firefox3CookieJar is experimental code")
         CookieJar.__init__(self, policy)
-        if filename is not None and not isstringlike(filename):
+        if filename is not None and not isinstance(filename, str):
             raise ValueError("filename must be string-like")
         self.filename = filename
         self._conn = None

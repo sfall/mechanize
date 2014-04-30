@@ -24,7 +24,6 @@ from ._response import seek_wrapped_response
 from urllib.parse import urlsplit
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 from urllib.request import HTTPDefaultErrorHandler, ProxyHandler, HTTPRedirectHandler, UnknownHandler, FTPHandler, FileHandler, OpenerDirector as ex_OpenerDirector, HTTPErrorProcessor, HTTPCookieProcessor, HTTPHandler
-from ._util import isstringlike
 
 open_file = open
 
@@ -154,7 +153,7 @@ class OpenerDirector(ex_OpenerDirector):
 
     def _request(self, url_or_req, data, visit,
                  timeout=_GLOBAL_DEFAULT_TIMEOUT):
-        if isstringlike(url_or_req):
+        if isinstance(url_or_req, str):
             req = Request(url_or_req, data, visit=visit, timeout=timeout)
         else:
             # already a mechanize.Request instance

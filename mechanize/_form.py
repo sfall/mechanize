@@ -149,11 +149,6 @@ def issequence(x):
         pass
     return True
 
-def isstringlike(x):
-    try: x+""
-    except: return False
-    else: return True
-
 
 def choose_boundary():
     """Return a string usable as a multipart boundary."""
@@ -1164,7 +1159,7 @@ class ScalarControl(Control):
 
     def __setattr__(self, name, value):
         if name == "value":
-            if not isstringlike(value):
+            if not isinstance(value, str):
                 raise TypeError("must assign a string")
             elif self.readonly:
                 raise AttributeError("control '%s' is readonly" % self.name)
@@ -1254,9 +1249,9 @@ class FileControl(ScalarControl):
     def add_file(self, file_object, content_type=None, filename=None):
         if not hasattr(file_object, "read"):
             raise TypeError("file-like object must have read method")
-        if content_type is not None and not isstringlike(content_type):
+        if content_type is not None and not isinstance(content_type, str):
             raise TypeError("content type must be None or string-like")
-        if filename is not None and not isstringlike(filename):
+        if filename is not None and not isinstance(filename, str):
             raise TypeError("filename must be None or string-like")
         if content_type is None:
             content_type = "application/octet-stream"
@@ -1648,11 +1643,11 @@ class ListControl(Control):
         For argument docs, see the docstring for .get()
 
         """
-        if name is not None and not isstringlike(name):
+        if name is not None and not isinstance(name, str):
             raise TypeError("item name must be string-like")
-        if label is not None and not isstringlike(label):
+        if label is not None and not isinstance(label, str):
             raise TypeError("item label must be string-like")
-        if id is not None and not isstringlike(id):
+        if id is not None and not isinstance(id, str):
             raise TypeError("item id must be string-like")
         items = []  # order is important
         compat = self._form.backwards_compat
@@ -1932,7 +1927,7 @@ class ListControl(Control):
             self.__dict__[name] = value
 
     def _set_value(self, value):
-        if value is None or isstringlike(value):
+        if value is None or isinstance(value, str):
             raise TypeError("ListControl, must set a sequence")
         if not value:
             compat = self._form.backwards_compat
@@ -2014,7 +2009,7 @@ class ListControl(Control):
         share the same item name (e.g. OPTION value).
 
         """
-        if isstringlike(value):
+        if isinstance(value, str):
             raise TypeError(value)
         if not self.multiple and len(value) > 1:
             raise ItemCountError(
@@ -3067,15 +3062,15 @@ class HTMLForm:
 
     def _find_control(self, name, type, kind, id, label, predicate, nr):
         if ((name is not None) and (name is not Missing) and
-            not isstringlike(name)):
+            not isinstance(name, str)):
             raise TypeError("control name must be string-like")
-        if (type is not None) and not isstringlike(type):
+        if (type is not None) and not isinstance(type, str):
             raise TypeError("control type must be string-like")
-        if (kind is not None) and not isstringlike(kind):
+        if (kind is not None) and not isinstance(kind, str):
             raise TypeError("control kind must be string-like")
-        if (id is not None) and not isstringlike(id):
+        if (id is not None) and not isinstance(id, str):
             raise TypeError("control id must be string-like")
-        if (label is not None) and not isstringlike(label):
+        if (label is not None) and not isinstance(label, str):
             raise TypeError("control label must be string-like")
         if (predicate is not None) and not isinstance(predicate, collections.Callable):
             raise TypeError("control predicate must be callable")

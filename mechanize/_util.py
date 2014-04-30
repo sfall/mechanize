@@ -26,16 +26,3 @@ def hide_deprecations():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 def reset_deprecations():
     warnings.filterwarnings("default", category=DeprecationWarning)
-
-
-def isstringlike(x):
-    try: x+""
-    except: return False
-    else: return True
-
-## def caller():
-##     try:
-##         raise SyntaxError
-##     except:
-##         import sys
-##     return sys.exc_traceback.tb_frame.f_back.f_back.f_code.co_name
