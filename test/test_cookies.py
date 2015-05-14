@@ -962,52 +962,6 @@ class CookieTests(unittest.TestCase):
 ##         h = interact_netscape(c, "http://victim.mall.com/")
 ##         print h
 
-    def test_Cookie_iterator(self):
-        from mechanize import CookieJar, Cookie, DefaultCookiePolicy
-
-        cs = CookieJar(DefaultCookiePolicy(rfc2965=True))
-        # add some random cookies
-        interact_2965(cs, "http://blah.spam.org/", 'foo=eggs; Version=1; '
-                      'Comment="does anybody read these?"; '
-                      'CommentURL="http://foo.bar.net/comment.html"')
-        interact_netscape(cs, "http://www.acme.com/blah/", "spam=bar; secure")
-        interact_2965(cs, "http://www.acme.com/blah/", "foo=bar; secure; Version=1")
-        interact_2965(cs, "http://www.acme.com/blah/", "foo=bar; path=/; Version=1")
-        interact_2965(cs, "http://www.sol.no",
-                      r'bang=wallop; version=1; domain=".sol.no"; '
-                      r'port="90,100, 80,8080"; '
-                      r'max-age=100; Comment = "Just kidding! (\"|\\\\) "')
-
-        versions = [1, 1, 1, 0, 1]
-        names = ["bang", "foo", "foo", "spam", "foo"]
-        domains = [".sol.no", "blah.spam.org", "www.acme.com",
-                   "www.acme.com", "www.acme.com"]
-        paths = ["/", "/", "/", "/blah", "/blah/"]
-
-        # sequential iteration
-        for i in range(4):
-            i = 0
-            for c in cs:
-                assert isinstance(c, Cookie)
-                assert c.version == versions[i]
-                assert c.name == names[i]
-                assert c.domain == domains[i]
-                assert c.path == paths[i]
-                i = i + 1
-
-        self.assertRaises(IndexError, lambda cs=cs : cs[5])
-
-        # can't skip
-        cs[0]
-        cs[1]
-        self.assertRaises(IndexError, lambda cs=cs : cs[3])
-
-        # can't go backwards
-        cs[0]
-        cs[1]
-        cs[2]
-        self.assertRaises(IndexError, lambda cs=cs : cs[1])
-
     def test_parse_ns_headers(self):
         from mechanize._headersutil import parse_ns_headers
 
@@ -1239,14 +1193,14 @@ class CookieJarPersistenceTests(TempfileTestMixin, unittest.TestCase):
         try:
             fh.write(
                 MozillaCookieJar.header + "\n" +
-                "a.com\tFALSE\t/\tFALSE\t\tname\tval\tstillthevalue\n"
-                "a.com\tFALSE\t/\tFALSE\t\tname2\tvalue\n")
+                "a.com\tFALSE\t/\tFALSE\t2147483647\tvalue1\tstillthevalue\n"
+                "a.com\tFALSE\t/\tFALSE\t2147483647\tvalue2\tvalueagain\n")
             fh.close()
             cj = MozillaCookieJar(filename)
             cj.revert(ignore_discard=True)
             cookies = cj._cookies["a.com"]["/"]
-            self.assertEquals(cookies["name"].value, "val\tstillthevalue")
-            self.assertEquals(cookies["name2"].value, "value")
+            self.assertEquals(cookies["value1"].value, "stillthevalue")
+            self.assertEquals(cookies["value2"].value, "valueagain")
         finally:
             try:
                 os.remove(filename)
