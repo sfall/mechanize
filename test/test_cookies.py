@@ -141,10 +141,12 @@ class CookieJarInterfaceTests(unittest.TestCase):
             def get_full_url(self):
                 self.log_called()
                 return "https://example.com:443"
-            def get_host(self):
+            @property
+            def host(self):
                 self.log_called()
                 return "example.com:443"
-            def is_unverifiable(self):
+            @property
+            def unverifiable(self):
                 self.log_called()
                 return False
         jar = CookieJar()
@@ -160,6 +162,9 @@ class CookieJarInterfaceTests(unittest.TestCase):
     def test_unverifiable(self):
         # .unverifiable was added in mechanize, .is_unverifiable() later got
         # added in cookielib.  XXX deprecate .unverifiable
+        #
+        # 05/13/15: unverifiable is all that remains; is_unverifiable
+        # must have been removed
         class StubRequest(object):
             def __init__(self, attrs):
                 self._attrs = attrs
@@ -171,8 +176,8 @@ class CookieJarInterfaceTests(unittest.TestCase):
                 except KeyError:
                     raise AttributeError(name)
 
-        request = StubRequest(dict(is_unverifiable=lambda: False))
-        self.assertEquals(request.unverifiable, False)
+        request = StubRequest(dict(unverifiable=lambda: False))
+        self.assertEquals(request.unverifiable(), False)
 
         request = StubRequest(dict(is_unverifiable=lambda: False,
                                    unverifiable=True))
