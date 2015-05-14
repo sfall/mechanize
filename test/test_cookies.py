@@ -125,7 +125,7 @@ class CookieJarInterfaceTests(unittest.TestCase):
         # verify only these methods are used
 
         class StubMessage(object):
-            def getheaders(self, name):
+            def get_all(self, name, failobj=None):
                 return ["foo=bar; port=443"]
 
         class StubResponse(object):
