@@ -8,6 +8,7 @@ import re
 import sys
 import tempfile
 import time
+import unittest
 
 import mechanize
 from mechanize._util import hide_experimental_warnings, \
@@ -84,10 +85,12 @@ class CookieJarInterfaceTests(unittest.TestCase):
             def get_full_url(self):
                 self.log_called()
                 return "https://example.com:443"
-            def get_host(self):
+            @property
+            def host(self):
                 self.log_called()
                 return "example.com:443"
-            def get_type(self):
+            @property
+            def type(self):
                 self.log_called()
                 return "https"
             def has_header(self, header_name):
@@ -102,7 +105,8 @@ class CookieJarInterfaceTests(unittest.TestCase):
             def add_unredirected_header(self, key, val):
                 self.log_called()
                 self.added_headers.append((key, val))
-            def is_unverifiable(self):
+            @property
+            def unverifiable(self):
                 self.log_called()
                 return False
         jar = CookieJar()
