@@ -102,10 +102,10 @@ CREATE TABLE IF NOT EXISTS moz_cookies (id INTEGER PRIMARY KEY, name TEXT,
          last_accessed, secure, http_only) = row
 
         version = 0
-        domain = domain.encode("ascii", "ignore")
-        path = path.encode("ascii", "ignore")
-        name = name.encode("ascii", "ignore")
-        value = value.encode("ascii", "ignore")
+        #domain = domain.encode("ascii", "ignore")
+        #path = path.encode("ascii", "ignore")
+        #name = name.encode("ascii", "ignore")
+        #value = value.encode("ascii", "ignore")
         secure = bool(secure)
 
         # last_accessed isn't a cookie attribute, so isn't added to rest

@@ -181,7 +181,7 @@ class CookieJarInterfaceTests(unittest.TestCase):
 
         request = StubRequest(dict(is_unverifiable=lambda: False,
                                    unverifiable=True))
-        self.assertEquals(request.unverifiable, False)
+        self.assertEquals(request.unverifiable, True)
 
         request = StubRequest(dict(unverifiable=False))
         self.assertEquals(request.unverifiable, False)
