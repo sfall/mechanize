@@ -6,10 +6,11 @@ option is not passed to the test runner.
 TODO: get the source code for these tests and run them locally if feasible
 """
 
-import os, os.path
+import os
+import os.path
 
 import mechanize
-from mechanize._util import read_file, write_file
+from urllib.parse import urlsplit
 
 from test.test_functional import TestCase
 
@@ -89,8 +90,8 @@ class OperaCookieTests(TestCase):
     @classmethod
     def write_test_uris(cls):
         uris = cls.fetch_test_uris()
-        write_file(cls.OPERA_COOKIE_TEST_URIS_PATH,
-                   ensure_trailing_newline("\n".join(uris)))
+        with open(cls.OPERA_COOKIE_TEST_URIS_PATH, 'w') as f:
+            f.write(ensure_trailing_newline("\n".join(uris)))
 
     @classmethod
     def make_test(cls, uri):
@@ -98,8 +99,7 @@ class OperaCookieTests(TestCase):
             browser = self.make_browser()
             browser.open(uri)
             self.assertIn("<p>PASS</p>", browser.response().get_data())
-        scheme, authority, path, query, fragment = \
-            mechanize._rfc3986.urlsplit(uri)
+        scheme, authority, path, query, fragment = urlsplit(uri)
         name = os.path.splitext(os.path.basename(path))[0]
         method_name = "test_%s" % name
         test.__name__ = method_name
@@ -115,7 +115,8 @@ class OperaCookieTests(TestCase):
         if not os.path.exists(cls.OPERA_COOKIE_TEST_URIS_PATH):
             return
 
-        for uri in read_file(cls.OPERA_COOKIE_TEST_URIS_PATH).splitlines():
-            cls.add_test(uri)
+        with open(cls.OPERA_COOKIE_TEST_URIS_PATH, 'r') as f:
+            for uri in f.read().splitlines():
+                cls.add_test(uri)
 
 OperaCookieTests.add_tests()

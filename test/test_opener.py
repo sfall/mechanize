@@ -66,7 +66,7 @@ class ResponseCloseVerifier(CloseVerifier):
         return ResponseCloseWrapper(response, self.closed, self._read)
 
 
-class URLOpener(mechanize.OpenerDirector):
+class URLOpener(mechanize.MechanizeOpenerDirector):
 
     def __init__(self, urlopen):
         self._urlopen = urlopen
@@ -130,11 +130,11 @@ class OpenerTests(unittest.TestCase):
         # progress callback should be called as expected, and we should end up
         # with a filename and some headers.
 
-        class Opener(mechanize.OpenerDirector):
+        class Opener(mechanize.MechanizeOpenerDirector):
             def __init__(self, content_length=None):
-                mechanize.OpenerDirector.__init__(self)
+                mechanize.MechanizeOpenerDirector.__init__(self)
                 self.calls = []
-                self.block_size = mechanize.OpenerDirector.BLOCK_SIZE
+                self.block_size = mechanize.MechanizeOpenerDirector.BLOCK_SIZE
                 self.nr_blocks = 2.5
                 self.data = int((self.block_size/8)*self.nr_blocks)*"01234567"
                 self.total_size = len(self.data)

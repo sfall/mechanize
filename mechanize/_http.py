@@ -25,7 +25,7 @@ from urllib.request import HTTPError, BaseHandler
 
 from ._headersutil import is_html
 from ._html import unescape
-from ._urllib2_fork import Request
+from ._urllib2_fork import MechanizeRequest
 from ._response import response_seek_wrapper
 from ._rfc3986 import clean_url
 from socket import _GLOBAL_DEFAULT_TIMEOUT
@@ -188,11 +188,12 @@ class HTTPEquivProcessor(BaseHandler):
         self._allow_xhtml = i_want_broken_xhtml_support
 
     def http_response(self, request, response):
-        if not hasattr(response, "seek"):
+        if not hasattr(response, "seek") or not response.seekable():
             response = response_seek_wrapper(response)
+        print(type(response))
         http_message = response.info()
         url = response.geturl()
-        ct_hdrs = http_message.getheaders("content-type")
+        ct_hdrs = http_message.get_all("content-type")
         if is_html(ct_hdrs, url, self._allow_xhtml):
             try:
                 try:
@@ -222,9 +223,9 @@ class MechanizeRobotFileParser(urllib.robotparser.RobotFileParser):
         self._timeout = _GLOBAL_DEFAULT_TIMEOUT
 
     def set_opener(self, opener=None):
-        from ._opener import OpenerDirector
+        from ._opener import MechanizeOpenerDirector
         if opener is None:
-            opener = OpenerDirector()
+            opener = MechanizeOpenerDirector()
         self._opener = opener
 
     def set_timeout(self, timeout):
@@ -234,7 +235,7 @@ class MechanizeRobotFileParser(urllib.robotparser.RobotFileParser):
         """Reads the robots.txt URL and feeds it to the parser."""
         if self._opener is None:
             self.set_opener()
-        req = Request(self.url, unverifiable=True, visit=False,
+        req = MechanizeRequest(self.url, unverifiable=True, visit=False,
                       timeout=self._timeout)
         try:
             f = self.ex_open(req)
@@ -415,7 +416,7 @@ class HTTPRefreshProcessor(BaseHandler):
         code, msg, hdrs = response.code, response.msg, response.info()
 
         if code == 200 and "refresh" in hdrs:
-            refresh = hdrs.getheaders("refresh")[0]
+            refresh = hdrs.get_all("refresh")[0]
             try:
                 pause, newurl = parse_refresh_header(refresh)
             except ValueError:

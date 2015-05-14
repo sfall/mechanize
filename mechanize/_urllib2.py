@@ -36,6 +36,6 @@ from ._http import \
      HTTPRefreshProcessor, \
      HTTPRobotRulesProcessor, \
      RobotExclusionError
-from ._opener import OpenerDirector, \
+from ._opener import MechanizeOpenerDirector, \
      SeekableResponseOpener, \
      build_opener, install_opener, urlopen

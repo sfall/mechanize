@@ -17,7 +17,6 @@ from mechanize import ControlNotFoundError
 from mechanize import ItemCountError
 from mechanize import ItemNotFoundError
 import mechanize._testcase as _testcase
-from mechanize._util import get1
 
 # XXX
 # HTMLForm.set/get_value_by_label()
@@ -56,18 +55,6 @@ class DummyForm:
 
 class UnescapeTests(unittest.TestCase):
 
-    def test_unescape_charref(self):
-        unescape_charref = _form.unescape_charref
-        mdash_utf8 = "\u2014".encode("utf-8")
-        for ref, codepoint, utf8, latin1 in [
-            ("38", 38, "&".encode("utf-8"), "&"),
-            ("x2014", 0x2014, mdash_utf8, "&#x2014;"),
-            ("8212", 8212, mdash_utf8, "&#8212;"),
-            ]:
-            self.assertEqual(unescape_charref(ref, None), chr(codepoint))
-            self.assertEqual(unescape_charref(ref, 'latin-1'), latin1)
-            self.assertEqual(unescape_charref(ref, 'utf-8'), utf8)
-
     def test_get_entitydefs(self):
         get_entitydefs = _form.get_entitydefs
         ed = get_entitydefs()
@@ -84,39 +71,31 @@ class UnescapeTests(unittest.TestCase):
         unescape = _form.unescape
         get_entitydefs = _form.get_entitydefs
         data = "&amp; &lt; &mdash; &#8212; &#x2014;"
-        mdash_utf8 = "\u2014".encode("utf-8")
-        ue = unescape(data, get_entitydefs(), "utf-8")
+        mdash_utf8 = "\u2014"
+        ue = unescape(data)
         self.assertEqual("& < %s %s %s" % ((mdash_utf8,)*3), ue)
 
         for text, expect in [
             ("&a&amp;", "&a&"),
             ("a&amp;", "a&"),
             ]:
-            got = unescape(text, get_entitydefs(), "latin-1")
+            got = unescape(text)
             self.assertEqual(got, expect)
 
     def test_unescape2(self):
         unescape = _form.unescape
         get_entitydefs = _form.get_entitydefs
-        self.assertEqual(unescape("Donald Duck &amp; Co",
-                                  {"&amp;": "&"}), "Donald Duck & Co")
-        self.assertEqual(
-            unescape("&lt;Donald Duck &amp; Co&gt;",
-                     {"&amp;": "&", "&lt;": "<", "&gt;": ">"}),
-            "<Donald Duck & Co>")
-        self.assertEqual(unescape("Hei p&aring; deg", {"&aring;" : "å"}),
-                         "Hei på deg")
-        self.assertEqual(
-            unescape("&amp;foo;",
-                     {"&amp;": "&", "&foo;": "splat"}), "&foo;")
-        self.assertEqual(unescape("&amp;", {}), "&amp;")
+        self.assertEqual(unescape("Donald Duck &amp; Co"), "Donald Duck & Co")
+        self.assertEqual(unescape("&lt;Donald Duck &amp; Co&gt;"),
+                         "<Donald Duck & Co>")
+        self.assertEqual(unescape("Hei p&aring; deg"), "Hei på deg")
+        self.assertEqual(unescape("&amp;foo;"), "&foo;")
+        self.assertEqual(unescape("&amp;"), "&amp;")
 
-        for encoding, expected in [
-            ("utf-8", "&\u06aa\u2014\u2014".encode("utf-8")),
-            ("latin-1", "&&#x06aa;&#x2014;&mdash;")]:
-            self.assertEqual(
-                expected,
-                unescape("&amp;&#x06aa;&#x2014;&mdash;", get_entitydefs(), encoding))
+        for expected in ["&\u06aa\u2014\u2014",
+                         "&&#x06aa;&#x2014;&mdash;"]:
+            self.assertEqual(expected,
+                             unescape("&amp;&#x06aa;&#x2014;&mdash;"))
 
     def test_unescape_parsing(self):
         file = StringIO(
@@ -127,11 +106,11 @@ class UnescapeTests(unittest.TestCase):
         forms = mechanize.ParseFile(file, "http://localhost/",
                                     backwards_compat=False, encoding="utf-8")
         form = forms[0]
-        test_string = ("&amp;"+("\u2014"*3)).encode('utf8')
-        self.assertEqual(form.action, b"http://localhost/"+test_string)
+        test_string = ("&amp;"+("\u2014"*3))
+        self.assertEqual(form.action, "http://localhost/"+test_string)
         control = form.find_control(type="textarea", nr=0)
-        self.assertEqual(control.value, b"val"+test_string)
-        self.assertEqual(control.name, b"name"+test_string)
+        self.assertEqual(control.value, "val"+test_string)
+        self.assertEqual(control.name, "name"+test_string)
 
     def test_unescape_parsing_select(self):
         f = StringIO("""\
@@ -233,23 +212,6 @@ class ParseErrorTests(_testcase.TestCase):
 
 
 class ParseTests(unittest.TestCase):
-
-    def test_failing_parse(self):
-        # XXX couldn't provoke an error from BeautifulSoup (!), so this has not
-        # been tested with RobustFormParser
-        import mechanize._sgmllib_copy as sgmllib
-        # Python 2.0 sgmllib raises RuntimeError rather than SGMLParseError,
-        # but seems never to even raise that except as an assertion, from
-        # reading the code...
-        if hasattr(sgmllib, "SGMLParseError"):
-            f = StringIO("<!!!!>")
-            base_uri = "http://localhost/"
-            self.assertRaises(
-                mechanize.ParseError,
-                mechanize.ParseFile, f, base_uri, backwards_compat=False,
-                )
-            self.assert_(issubclass(mechanize.ParseError,
-                                    sgmllib.SGMLParseError))
 
     def test_unknown_control(self):
         f = StringIO(
@@ -2977,7 +2939,9 @@ def make_form(html):
 
 
 def make_form_global(html):
-    return get1(mechanize.ParseFileEx(StringIO(html), "http://example.com/"))
+    sequence = mechanize.ParseFileEx(StringIO(html), "http://example.com/")
+    assert len(sequence) == 1
+    return sequence[0]
 
 
 class MoreFormTests(unittest.TestCase):

@@ -15,13 +15,13 @@ import warnings
 
 from ._auth import HTTPProxyPasswordMgr
 from ._gzip import HTTPGzipProcessor
-from ._opener import wrapped_open, OpenerDirector
+from ._opener import wrapped_open, MechanizeOpenerDirector
 from ._response import seek_wrapped_response
 from socket import _GLOBAL_DEFAULT_TIMEOUT
 from ._urllib2 import HTTPResponseDebugProcessor, HTTPDefaultErrorHandler, HTTPBasicAuthHandler, FTPHandler, HTTPEquivProcessor, HTTPPasswordMgrWithDefaultRealm, ProxyDigestAuthHandler, HTTPRedirectHandler, UnknownHandler, ProxyHandler, HTTPRefreshProcessor, ProxyBasicAuthHandler, HTTPRobotRulesProcessor, HTTPRedirectDebugProcessor, FileHandler, HTTPDigestAuthHandler, HTTPErrorProcessor, HTTPCookieProcessor, HTTPSClientCertMgr, HTTPHandler
 
 
-class UserAgentBase(OpenerDirector):
+class UserAgentBase(MechanizeOpenerDirector):
     """Convenient user-agent class.
 
     Do not use .add_handler() to add a handler for something already dealt with
@@ -86,7 +86,7 @@ class UserAgentBase(OpenerDirector):
                         ]
 
     def __init__(self):
-        OpenerDirector.__init__(self)
+        MechanizeOpenerDirector.__init__(self)
 
         ua_handlers = self._ua_handlers = {}
         for scheme in (self.default_schemes+
@@ -119,7 +119,7 @@ class UserAgentBase(OpenerDirector):
             self.set_client_cert_manager(cm)
 
     def close(self):
-        OpenerDirector.close(self)
+        MechanizeOpenerDirector.close(self)
         self._ua_handlers = None
 
     # XXX

@@ -42,9 +42,10 @@ __all__ = [
     'LinkNotFoundError',
     'LinksFactory',
     'LoadError',
+    'MechanizeRequest',
     'MSIECookieJar',
     'MozillaCookieJar',
-    'OpenerDirector',
+    'MechanizeOpenerDirector',
     'OpenerFactory',
     'ParseError',
     'ProxyBasicAuthHandler',
@@ -133,6 +134,7 @@ from ._html import \
 
 # urllib2 work-alike interface.  This is a superset of the urllib2 interface.
 from ._urllib2 import *
+from ._urllib2_fork import MechanizeRequest
 
 # misc
 from ._http import HeadParser

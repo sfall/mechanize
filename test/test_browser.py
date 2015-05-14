@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """Tests for mechanize.Browser."""
 
-from unittest import TestCase
-import io
-import http.client
 import email
+import http.client
+import io
 import re
+from unittest import TestCase
 
-from mechanize._response import test_html_response
 import mechanize
 import mechanize._response
 import mechanize._testcase
+from mechanize._response import test_html_response
 
 
 FACTORY_CLASSES = [mechanize.DefaultFactory, mechanize.RobustFactory]

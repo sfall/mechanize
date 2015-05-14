@@ -8,7 +8,7 @@ COPYING.txt included with the distribution).
 
 """
 
-import os, urllib.request, urllib.error, urllib.parse, bisect, http.client, types, tempfile
+import os, urllib.request, urllib.error, urllib.parse, bisect, tempfile
 try:
     import threading as _threading
 except ImportError:
@@ -19,11 +19,11 @@ except NameError:
     import sets
     set = sets.Set
 
-from ._urllib2_fork import Request
+from ._urllib2_fork import MechanizeRequest
 from ._response import seek_wrapped_response
 from urllib.parse import urlsplit
 from socket import _GLOBAL_DEFAULT_TIMEOUT
-from urllib.request import HTTPDefaultErrorHandler, ProxyHandler, HTTPRedirectHandler, UnknownHandler, FTPHandler, FileHandler, OpenerDirector as ex_OpenerDirector, HTTPErrorProcessor, HTTPCookieProcessor, HTTPHandler
+from urllib.request import HTTPDefaultErrorHandler, ProxyHandler, HTTPRedirectHandler, UnknownHandler, FTPHandler, FileHandler, OpenerDirector, HTTPErrorProcessor, HTTPCookieProcessor, HTTPHandler
 
 open_file = open
 
@@ -43,9 +43,9 @@ def set_request_attr(req, name, value, default):
         setattr(req, name, value)
 
 
-class OpenerDirector(ex_OpenerDirector):
+class MechanizeOpenerDirector(OpenerDirector):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         # really none of these are (sanely) public -- the lack of initial
         # underscore on some is just due to following urllib2
         self.process_response = {}
@@ -154,7 +154,7 @@ class OpenerDirector(ex_OpenerDirector):
     def _request(self, url_or_req, data, visit,
                  timeout=_GLOBAL_DEFAULT_TIMEOUT):
         if isinstance(url_or_req, str):
-            req = Request(url_or_req, data, visit=visit, timeout=timeout)
+            req = MechanizeRequest(url_or_req, data, visit=visit, timeout=timeout)
         else:
             # already a mechanize.Request instance
             req = url_or_req
@@ -188,7 +188,7 @@ class OpenerDirector(ex_OpenerDirector):
 
         # In Python >= 2.4, .open() supports processors already, so we must
         # call ._open() instead.
-        urlopen = ex_OpenerDirector._open
+        urlopen = OpenerDirector._open
         response = urlopen(self, req, data)
 
         # post-process response
@@ -297,7 +297,7 @@ class OpenerDirector(ex_OpenerDirector):
         return result
 
     def close(self):
-        ex_OpenerDirector.close(self)
+        OpenerDirector.close(self)
 
         # make it very obvious this object is no longer supposed to be used
         self.open = self.error = self.retrieve = self.add_handler = None
@@ -329,13 +329,13 @@ def wrapped_open(urlopen, process_response_object, fullurl, data=None,
         raise response
     return response
 
-class ResponseProcessingOpener(OpenerDirector):
+class ResponseProcessingOpener(MechanizeOpenerDirector):
 
     def open(self, fullurl, data=None,
              timeout=_GLOBAL_DEFAULT_TIMEOUT):
         def bound_open(fullurl, data=None,
                        timeout=_GLOBAL_DEFAULT_TIMEOUT):
-            return OpenerDirector.open(self, fullurl, data, timeout)
+            return MechanizeOpenerDirector.open(self, fullurl, data, timeout)
         return wrapped_open(
             bound_open, self.process_response_object, fullurl, data, timeout)
 
@@ -371,7 +371,7 @@ class OpenerFactory:
     handlers = []
     replacement_handlers = []
 
-    def __init__(self, klass=OpenerDirector):
+    def __init__(self, klass=MechanizeOpenerDirector):
         self.klass = klass
 
     def build_opener(self, *handlers):

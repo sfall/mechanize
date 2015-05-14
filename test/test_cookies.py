@@ -1,6 +1,5 @@
 """Tests for _clientcookie."""
 
-import io
 import errno
 import inspect
 import email
@@ -9,7 +8,6 @@ import re
 import sys
 import tempfile
 import time
-import unittest
 
 import mechanize
 from mechanize._util import hide_experimental_warnings, \
@@ -156,7 +154,6 @@ class CookieJarInterfaceTests(unittest.TestCase):
                           [("foo", "bar")])
 
     def test_unverifiable(self):
-        from mechanize._clientcookie import request_is_unverifiable
         # .unverifiable was added in mechanize, .is_unverifiable() later got
         # added in cookielib.  XXX deprecate .unverifiable
         class StubRequest(object):
@@ -171,14 +168,14 @@ class CookieJarInterfaceTests(unittest.TestCase):
                     raise AttributeError(name)
 
         request = StubRequest(dict(is_unverifiable=lambda: False))
-        self.assertEquals(request_is_unverifiable(request), False)
+        self.assertEquals(request.unverifiable, False)
 
         request = StubRequest(dict(is_unverifiable=lambda: False,
                                    unverifiable=True))
-        self.assertEquals(request_is_unverifiable(request), False)
+        self.assertEquals(request.unverifiable, False)
 
         request = StubRequest(dict(unverifiable=False))
-        self.assertEquals(request_is_unverifiable(request), False)
+        self.assertEquals(request.unverifiable, False)
 
 
 class CookieTests(unittest.TestCase):
@@ -237,7 +234,7 @@ class CookieTests(unittest.TestCase):
 
     def test_make_cookies_doesnt_change_jar_state(self):
         from mechanize import CookieJar, Request, Cookie
-        from mechanize._util import time2netscape
+        from http.cookiejar import time2netscape
         from mechanize._response import test_response
         cookie = Cookie(0, "spam", "eggs",
                         "80", False,
@@ -341,7 +338,7 @@ class CookieTests(unittest.TestCase):
 
     def test_ns_parser(self):
         from mechanize import CookieJar
-        from mechanize._clientcookie import DEFAULT_HTTP_PORT
+        from http.cookiejar import DEFAULT_HTTP_PORT
 
         c = CookieJar()
         interact_netscape(c, "http://www.acme.com/",
@@ -391,7 +388,7 @@ class CookieTests(unittest.TestCase):
         self.assert_('version' in cookies)
 
     def test_expires(self):
-        from mechanize._util import time2netscape
+        from http.cookiejar import time2netscape
         from mechanize import CookieJar
 
         # if expires is in future, keep cookie...
@@ -484,7 +481,7 @@ class CookieTests(unittest.TestCase):
         self.assertEqual(interact_netscape(cj, uri), value)
 
     def test_escape_path(self):
-        from mechanize._clientcookie import escape_path
+        from http.cookiejar import escape_path
         cases = [
             # quoted safe
             ("/foo%2f/bar", "/foo%2F/bar"),
@@ -508,7 +505,7 @@ class CookieTests(unittest.TestCase):
             self.assert_(escape_path(arg) == result)
 
     def test_request_path(self):
-        from mechanize._clientcookie import request_path
+        from http.cookiejar import request_path
         # with parameters
         req = Request("http://www.example.com/rheum/rhaponticum;"
                       "foo=bar;sing=song?apples=pears&spam=eggs#ni")
@@ -523,7 +520,7 @@ class CookieTests(unittest.TestCase):
         self.assert_(request_path(req) == "/")
 
     def test_request_port(self):
-        from mechanize._clientcookie import request_port, DEFAULT_HTTP_PORT
+        from http.cookiejar import request_port, DEFAULT_HTTP_PORT
         req = Request("http://www.acme.com:1234/",
                       headers={"Host": "www.acme.com:4321"})
         assert request_port(req) == "1234"
@@ -532,7 +529,7 @@ class CookieTests(unittest.TestCase):
         assert request_port(req) == DEFAULT_HTTP_PORT
 
     def test_request_host_lc(self):
-        from mechanize._clientcookie import request_host_lc
+        from http.cookiejar import request_host as request_host_lc
         # this request is illegal (RFC2616, 14.2.3)
         req = Request("http://1.1.1.1/",
                       headers={"Host": "www.acme.com:80"})
@@ -556,17 +553,8 @@ class CookieTests(unittest.TestCase):
         req = Request("http://EXAMPLE.com")
         assert request_host_lc(req) == "example.com"
 
-    def test_effective_request_host(self):
-        from mechanize import effective_request_host
-        self.assertEquals(
-            effective_request_host(Request("http://www.EXAMPLE.com/spam")),
-            "www.EXAMPLE.com")
-        self.assertEquals(
-            effective_request_host(Request("http://bob/spam")),
-            "bob.local")
-
     def test_is_HDN(self):
-        from mechanize._clientcookie import is_HDN
+        from http.cookiejar import is_HDN
         assert is_HDN("foo.bar.com")
         assert is_HDN("1foo2.3bar4.5com")
         assert not is_HDN("192.168.1.1")
@@ -577,7 +565,7 @@ class CookieTests(unittest.TestCase):
         assert not is_HDN("foo.")
 
     def test_reach(self):
-        from mechanize._clientcookie import reach
+        from http.cookiejar import reach
         assert reach("www.acme.com") == ".acme.com"
         assert reach("acme.com") == "acme.com"
         assert reach("acme.local") == ".local"
@@ -588,7 +576,7 @@ class CookieTests(unittest.TestCase):
         assert reach("192.168.0.1") == "192.168.0.1"
 
     def test_domain_match(self):
-        from mechanize._clientcookie import domain_match, user_domain_match
+        from http.cookiejar import domain_match, user_domain_match
         assert domain_match("192.168.1.1", "192.168.1.1")
         assert not domain_match("192.168.1.1", ".168.1.1")
         assert domain_match("x.y.com", "x.Y.com")
@@ -1064,10 +1052,10 @@ class CookieTests(unittest.TestCase):
         cj = CookieJar()
         interact_netscape(cj, "http://example.com/", "short=path")
         interact_netscape(cj, "http://example.com/longer/path", "longer=path")
-        for_short_path = cj.cookies_for_request(Request("http://example.com/"))
+        for_short_path = cj._cookies_for_request(Request("http://example.com/"))
         self.assertEquals([cookie.name for cookie in for_short_path],
                           ["short"])
-        for_long_path = cj.cookies_for_request(Request(
+        for_long_path = cj._cookies_for_request(Request(
                 "http://example.com/longer/path"))
         self.assertEquals([cookie.name for cookie in for_long_path],
                           ["longer", "short"])
@@ -1480,7 +1468,7 @@ class LWPCookieTests(unittest.TestCase, TempfileTestMixin):
 
         cookie = interact_2965(c, 'http://www.acme.com/acme/pickitem',
                                'Part_Number="Rocket_Launcher_0001"; '
-                               'Version="1"; Path="/acme"');
+                               'Version="1"; Path="/acme"')
         assert re.search(
             r'^\$Version="?1"?; Customer="?WILE_E_COYOTE"?; \$Path="/acme"$',
             cookie)
@@ -1699,7 +1687,7 @@ class LWPCookieTests(unittest.TestCase, TempfileTestMixin):
 
         cookie = interact_2965(
             c, "http://www.acme.com/foo%2f%25/<<%0anew\345/\346\370\345",
-            'bar=baz; path="/foo/"; version=1');
+            'bar=baz; path="/foo/"; version=1')
         version_re = re.compile(r'^\$version=\"?1\"?', re.I)
         assert (cookie.find("foo=bar") != -1 and
                 version_re.search(cookie))

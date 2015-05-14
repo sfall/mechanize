@@ -72,7 +72,7 @@ import urllib.parse
 import warnings
 
 from bs4 import BeautifulSoup
-from ._urllib2_fork import Request
+from ._urllib2_fork import MechanizeRequest
 
 from html.parser import HTMLParseError, HTMLParser
 import collections
@@ -759,7 +759,7 @@ class RobustFormParser(_AbstractBSFormParser, BeautifulSoup):
 def ParseResponseEx(response,
                     select_default=False,
                     form_parser_class=FormParser,
-                    request_class=Request,
+                    request_class=MechanizeRequest,
                     entitydefs=None,
                     encoding=DEFAULT_ENCODING,
 
@@ -793,7 +793,7 @@ def ParseResponseEx(response,
 def ParseFileEx(file, base_uri,
                 select_default=False,
                 form_parser_class=FormParser,
-                request_class=Request,
+                request_class=MechanizeRequest,
                 entitydefs=None,
                 encoding=DEFAULT_ENCODING,
 
@@ -910,7 +910,7 @@ def _ParseFileEx(file, base_uri,
                  select_default=False,
                  ignore_errors=False,
                  form_parser_class=FormParser,
-                 request_class=Request,
+                 request_class=MechanizeRequest,
                  entitydefs=None,
                  backwards_compat=True,
                  encoding=DEFAULT_ENCODING,
@@ -1364,7 +1364,7 @@ class IsindexControl(ScalarControl):
     def _totally_ordered_pairs(self):
         return []
 
-    def _click(self, form, coord, return_type, request_class=Request):
+    def _click(self, form, coord, return_type, request_class=MechanizeRequest):
         # Relative URL for ISINDEX submission: instead of "foo=bar+baz",
         # want "bar+baz".
         # This doesn't seem to be specified in HTML 4.01 spec. (ISINDEX is
@@ -2291,7 +2291,7 @@ class SubmitControl(ScalarControl):
 
     def is_of_kind(self, kind): return kind == "clickable"
 
-    def _click(self, form, coord, return_type, request_class=Request):
+    def _click(self, form, coord, return_type, request_class=MechanizeRequest):
         self._clicked = coord
         r = form._switch_click(return_type, request_class)
         self._clicked = False
@@ -2587,7 +2587,7 @@ class HTMLForm:
     def __init__(self, action, method="GET",
                  enctype="application/x-www-form-urlencoded",
                  name=None, attrs=None,
-                 request_class=Request,
+                 request_class=MechanizeRequest,
                  forms=None, labels=None, id_to_labels=None,
                  backwards_compat=True):
         """
@@ -2918,7 +2918,7 @@ class HTMLForm:
 # Form submission methods, applying only to clickable controls.
 
     def click(self, name=None, type=None, id=None, nr=0, coord=(1,1),
-              request_class=Request,
+              request_class=MechanizeRequest,
               label=None):
         """Return request that would result from clicking on a control.
 
@@ -2947,7 +2947,7 @@ class HTMLForm:
     def click_request_data(self,
                            name=None, type=None, id=None,
                            nr=0, coord=(1,1),
-                           request_class=Request,
+                           request_class=MechanizeRequest,
                            label=None):
         """As for click method, but return a tuple (url, data, headers).
 
@@ -3132,7 +3132,7 @@ class HTMLForm:
         assert False
 
     def _click(self, name, type, id, label, nr, coord, return_type,
-               request_class=Request):
+               request_class=MechanizeRequest):
         try:
             control = self._find_control(
                 name, type, "clickable", id, label, None, nr)
@@ -3204,7 +3204,7 @@ class HTMLForm:
         else:
             raise ValueError("Unknown method '%s'" % method)
 
-    def _switch_click(self, return_type, request_class=Request):
+    def _switch_click(self, return_type, request_class=MechanizeRequest):
         # This is called by HTMLForm and clickable Controls to hide switching
         # on return_type.
         if return_type == "pairs":

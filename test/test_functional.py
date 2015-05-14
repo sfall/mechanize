@@ -13,20 +13,20 @@ import subprocess
 import sys
 import unittest
 import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+from urllib.parse import urljoin
 
 import mechanize
-from mechanize import CookieJar, HTTPCookieProcessor, \
-     HTTPHandler, HTTPRefreshProcessor, \
-     HTTPEquivProcessor, HTTPRedirectHandler, \
-     HTTPRedirectDebugProcessor, HTTPResponseDebugProcessor
-from mechanize._rfc3986 import urljoin
-from mechanize._util import hide_experimental_warnings, \
-    reset_experimental_warnings, read_file, write_file
 import mechanize._opener
 import mechanize._rfc3986
-import mechanize._sockettimeout
 import mechanize._testcase
+import mechanize._urllib2
+from mechanize import CookieJar
+from mechanize import HTTPCookieProcessor
+from mechanize import HTTPRefreshProcessor
+from mechanize import HTTPEquivProcessor
+from mechanize import HTTPRedirectHandler
+from mechanize._util import hide_experimental_warnings
+from mechanize._util import reset_experimental_warnings
 
 
 #from cookielib import CookieJar
@@ -73,7 +73,7 @@ class TestCase(mechanize._testcase.TestCase):
         self.server = self.get_cached_fixture("server")
         if self.no_proxies:
             old_opener_m = mechanize._opener._opener
-            old_opener_u = urllib2._opener
+            old_opener_u = mechanize._urllib._opener
             mechanize.install_opener(mechanize.build_opener(
                     mechanize.ProxyHandler(proxies={})))
             urllib.request.install_opener(urllib.request.build_opener(
@@ -100,7 +100,8 @@ class FtpTestCase(TestCase):
         path = self.make_temp_dir(dir_=server.root_path)
         file_path = os.path.join(path, "stuff")
         data = "data\nmore data"
-        write_file(file_path, data)
+        with open(file_path, 'w') as f:
+            f.write(data)
         relative_path = os.path.join(os.path.basename(path), "stuff")
         r = browser.open("ftp://anon@localhost:%s/%s" %
                          (server.port, relative_path))
@@ -221,7 +222,7 @@ class SimpleTests(SocketTimeoutTest):
         timeout_log = self._monkey_patch_socket()
         timeout = 10.
         # 301 redirect due to missing final '/'
-        req = mechanize.Request(urljoin(self.test_uri, "test_fixtures"),
+        req = mechanize.MechanizeRequest(urljoin(self.test_uri, "test_fixtures"),
                                 timeout=timeout)
         r = self.browser.open(req)
         self.assert_("GeneralFAQ.html" in r.read(2048))
@@ -315,7 +316,7 @@ class SimpleTests(SocketTimeoutTest):
         self.assert_("GeneralFAQ.html" in r.read(2048))
 
         # Request argument instead of URL
-        r = self.browser.open_novisit(mechanize.Request(uri))
+        r = self.browser.open_novisit(mechanize.MechanizeRequest(uri))
         test_state(self.browser)
         self.assert_("GeneralFAQ.html" in r.read(2048))
 
@@ -531,8 +532,10 @@ class FunctionalTests(SocketTimeoutTest):
             proxies = {}
         else:
             proxies = None
-        self.assertEqual(read_file(filename),
-                         urlopen(url, proxies=proxies).read())
+        retrieved = ''
+        with open(filename, 'r') as f:
+            retrieved = f.read()
+        self.assertEqual(retrieved, urlopen(url, proxies=proxies).read())
 
     def test_retrieve_to_named_file(self):
         url = urljoin(self.uri, "/mechanize/")
@@ -550,7 +553,7 @@ class FunctionalTests(SocketTimeoutTest):
         url = urljoin(self.uri, "/mechanize/")
         opener = self.build_opener()
         verif = CallbackVerifier(self)
-        request = mechanize.Request(url)
+        request = mechanize.MechanizeRequest(url)
         filename, headers = opener.retrieve(request, reporthook=verif.callback)
         self.assertEquals(request.visit, False)
         self._check_retrieve(url, filename, headers)
@@ -662,7 +665,8 @@ class FormsExamplesTests(mechanize._testcase.GoldenTestCase):
                                 env=env,
                                 cwd=forms_examples_dir)
         output = fixup(output)
-        write_file(os.path.join(output_dir, "output"), output)
+        with open(os.path.join(output_dir, "output"), 'w') as f:
+            f.write(output)
         self.assert_golden(output_dir,
                            os.path.join(this_dir, golden_path))
 

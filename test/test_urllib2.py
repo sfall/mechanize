@@ -24,7 +24,7 @@ from mechanize import HTTPRedirectHandler, \
      HTTPEquivProcessor, HTTPRefreshProcessor, \
      HTTPCookieProcessor, HTTPRefererProcessor, \
      HTTPErrorProcessor, HTTPHandler
-from mechanize import OpenerDirector, build_opener, Request
+from mechanize import MechanizeOpenerDirector, build_opener, Request
 from mechanize._urllib2_fork import AbstractHTTPHandler
 from mechanize._util import write_file
 
@@ -382,7 +382,7 @@ def add_ordered_mock_handlers(opener, meth_spec):
     return handlers
 
 def build_test_opener(*handler_instances):
-    opener = OpenerDirector()
+    opener = MechanizeOpenerDirector()
     for h in handler_instances:
         opener.add_handler(h)
     return opener
@@ -430,7 +430,7 @@ class OpenerDirectorTests(unittest.TestCase):
         class NonHandler(object):
             pass
         self.assertRaises(TypeError,
-                          OpenerDirector().add_handler, NonHandler())
+                          MechanizeOpenerDirector().add_handler, NonHandler())
 
     def test_badly_named_methods(self):
         # test work-around for three methods that accidentally follow the
@@ -443,7 +443,7 @@ class OpenerDirectorTests(unittest.TestCase):
 
         from mechanize import URLError
 
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         meth_spec = [
             [("do_open", "return self"), ("proxy_open", "return self")],
             [("redirect_request", "return self")],
@@ -455,7 +455,7 @@ class OpenerDirectorTests(unittest.TestCase):
 
     def test_handled(self):
         # handler returning non-None means no more handlers will be called
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         meth_spec = [
             ["http_open", "ftp_open", "http_error_302"],
             ["ftp_open"],
@@ -481,7 +481,7 @@ class OpenerDirectorTests(unittest.TestCase):
 
 
     def test_reindex_handlers(self):
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         class MockHandler:
             def add_parent(self, parent): pass
             def close(self):pass
@@ -513,7 +513,7 @@ class OpenerDirectorTests(unittest.TestCase):
         self.assertEqual(o.handlers, [h, p])
 
     def test_handler_order(self):
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         handlers = []
         for meths, handler_order in [
             ([("http_open", "return self")], 500),
@@ -532,7 +532,7 @@ class OpenerDirectorTests(unittest.TestCase):
 
     def test_raise(self):
         # raising URLError stops processing of request
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         meth_spec = [
             [("http_open", "raise")],
             [("http_open", "return self")],
@@ -550,7 +550,7 @@ class OpenerDirectorTests(unittest.TestCase):
     def test_http_error(self):
         # XXX http_error_default
         # http errors are a special case
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         meth_spec = [
             [("http_open", "error 302")],
             [("http_error_400", "raise"), "http_open"],
@@ -576,7 +576,7 @@ class OpenerDirectorTests(unittest.TestCase):
         # XXX it worries me that this is the only test that excercises the else
         # branch in HTTPDefaultErrorHandler
         from mechanize import _response
-        o = mechanize.OpenerDirector()
+        o = mechanize.MechanizeOpenerDirector()
         o.add_handler(mechanize.HTTPErrorProcessor())
         o.add_handler(mechanize.HTTPDefaultErrorHandler())
         class HTTPHandler(AbstractHTTPHandler):
@@ -587,7 +587,7 @@ class OpenerDirectorTests(unittest.TestCase):
 
     def test_processors(self):
         # *_request / *_response methods get called appropriately
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         meth_spec = [
             [("http_request", "return request"),
              ("http_response", "return response")],
@@ -623,7 +623,7 @@ class OpenerDirectorTests(unittest.TestCase):
 
     def test_any(self):
         # XXXXX two handlers case: ordering
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         meth_spec = [[
             ("http_request", "return request"),
             ("http_response", "return response"),
@@ -1026,7 +1026,7 @@ class HandlerTests(mechanize._testcase.TestCase):
     def test_robots(self):
         # XXX useragent
         from mechanize import HTTPRobotRulesProcessor
-        opener = OpenerDirector()
+        opener = MechanizeOpenerDirector()
         rfpc = MockRobotFileParserClass()
         h = HTTPRobotRulesProcessor(rfpc)
         opener.add_handler(h)
@@ -1176,7 +1176,7 @@ class HandlerTests(mechanize._testcase.TestCase):
         new_headers = newr.info()
         self.assertEqual(new_headers["Foo"], "Bar")
         self.assertEqual(new_headers["Refresh"], "spam&eggs")
-        self.assertEqual(new_headers.getheaders("Refresh"),
+        self.assertEqual(new_headers.get_all("Refresh"),
                          ["blah", "spam&eggs"])
 
     def test_refresh(self):
@@ -1359,7 +1359,7 @@ class HandlerTests(mechanize._testcase.TestCase):
         self.assertFalse(hh.req.has_header("Cookie"))
 
     def test_proxy(self):
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         ph = mechanize.ProxyHandler(dict(http="proxy.example.com:3128"))
         o.add_handler(ph)
         meth_spec = [
@@ -1379,7 +1379,7 @@ class HandlerTests(mechanize._testcase.TestCase):
 
     def test_proxy_no_proxy(self):
         self.monkey_patch_environ("no_proxy", "python.org")
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         ph = mechanize.ProxyHandler(dict(http="proxy.example.com"))
         o.add_handler(ph)
         req = Request("http://www.perl.org/")
@@ -1398,7 +1398,7 @@ class HandlerTests(mechanize._testcase.TestCase):
                                   mechanize._testcase.MonkeyPatcher.Unset)
         def proxy_bypass(hostname):
             return hostname == "noproxy.com"
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         ph = mechanize.ProxyHandler(dict(http="proxy.example.com"),
                                     proxy_bypass=proxy_bypass)
         def is_proxied(url):
@@ -1410,7 +1410,7 @@ class HandlerTests(mechanize._testcase.TestCase):
         self.assertFalse(is_proxied("http://noproxy.com"))
 
     def test_proxy_https(self):
-        o = OpenerDirector()
+        o = MechanizeOpenerDirector()
         ph = mechanize.ProxyHandler(dict(https='proxy.example.com:3128'))
         o.add_handler(ph)
         meth_spec = [
@@ -1425,7 +1425,7 @@ class HandlerTests(mechanize._testcase.TestCase):
                          [tup[0:2] for tup in o.calls])
 
     def test_basic_auth(self, quote_char='"'):
-        opener = OpenerDirector()
+        opener = MechanizeOpenerDirector()
         password_manager = MockPasswordManager()
         auth_handler = mechanize.HTTPBasicAuthHandler(password_manager)
         realm = "ACME Widget Store"
@@ -1444,7 +1444,7 @@ class HandlerTests(mechanize._testcase.TestCase):
         self.test_basic_auth(quote_char="'")
 
     def test_proxy_basic_auth(self):
-        opener = OpenerDirector()
+        opener = MechanizeOpenerDirector()
         ph = mechanize.ProxyHandler(dict(http="proxy.example.com:3128"))
         opener.add_handler(ph)
         password_manager = MockPasswordManager()
@@ -1469,9 +1469,9 @@ class HandlerTests(mechanize._testcase.TestCase):
         # Also (http://python.org/sf/1479302, RFC 2617 section 1.2), we must
         # try digest first (since it's the strongest auth scheme), so we record
         # order of calls here to check digest comes first:
-        class RecordingOpenerDirector(OpenerDirector):
+        class RecordingOpenerDirector(MechanizeOpenerDirector):
             def __init__(self):
-                OpenerDirector.__init__(self)
+                MechanizeOpenerDirector.__init__(self)
                 self.recorded = []
             def record(self, info):
                 self.recorded.append(info)

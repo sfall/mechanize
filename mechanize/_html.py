@@ -18,7 +18,7 @@ from html.parser import HTMLParser, HTMLParseError
 from bs4 import BeautifulSoup, Tag
 from ._form import RobustFormParser, FormParser, ParseResponseEx, ParseError as ex_ParseError
 from ._headersutil import split_header_words, is_html as _is_html
-from ._urllib2_fork import Request
+from ._urllib2_fork import MechanizeRequest
 from ._rfc3986 import clean_url
 from urllib.parse import urljoin, urlunsplit, urlsplit
 
@@ -210,7 +210,7 @@ class FormsFactory:
             form_parser_class = FormParser
         self.form_parser_class = form_parser_class
         if request_class is None:
-            request_class = Request
+            request_class = MechanizeRequest
         self.request_class = request_class
         self.backwards_compat = backwards_compat
         self._response = None

@@ -69,7 +69,7 @@ True
 
 Warn early about some mistakes setting a response object
 
->>> import StringIO
+>>> import io as StringIO
 >>> br = TestBrowser2()
 >>> br.set_response("blah")
 Traceback (most recent call last):
@@ -278,9 +278,9 @@ BrowserStateError: not viewing any document
 >>> br = TestBrowser2()
 >>> br.visit_response(test_html_response("""\
 ... <html><head><title></title></head><body>
-... <input type="text" name="a" value="b"></input>
+... <input type="text" name="a" value="b">
 ... <form>
-...     <input type="text" name="p" value="q"></input>
+...     <input type="text" name="p" value="q">
 ... </form>
 ... </body></html>"""))
 >>> def has_a(form):

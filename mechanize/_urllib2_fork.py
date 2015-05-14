@@ -37,7 +37,7 @@ from ._rfc3986 import is_clean_uri
 warn = logging.getLogger("mechanize").warning
 
 
-class Request(urllib.request.Request):
+class MechanizeRequest(urllib.request.Request):
     def __init__(self, url, data=None, headers={},
                  origin_req_host=None, unverifiable=False, visit=None,
                  timeout=_GLOBAL_DEFAULT_TIMEOUT):
@@ -51,7 +51,7 @@ class Request(urllib.request.Request):
         if not is_clean_uri(url):
             warn("url argument is not a URI "
                  "(contains illegal characters) %r" % url)
-        super().__init__(self, url, data, headers)
+        super().__init__(url, data, headers)
         self.selector = None
         self.visit = visit
         self.timeout = timeout
